@@ -54,6 +54,7 @@
         "papaparse": "^5.4.1",
         "regenerator-runtime": "^0.13.9",
         "roarr": "^7.21.1",
+        "rollup-plugin-bundle-worker": "^0.1.0",
         "store2": "^2.13.2"
     },
     "devDependencies": {

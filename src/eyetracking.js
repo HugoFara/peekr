@@ -49,7 +49,7 @@ const rightEyectx = rightEyeCanvas.getContext("2d",{ willReadFrequently: true })
   export function createWorker(onGazeCallback, onModelReady = null) {
     if (myWorker) return myWorker;
   
-    myWorker = new Worker(new URL('worker.js', import.meta.url), {
+    myWorker = new Worker(new URL('./worker.js', import.meta.url), {
       type: "module"
     });
   

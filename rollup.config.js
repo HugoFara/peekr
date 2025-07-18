@@ -5,6 +5,7 @@ import copy from 'rollup-plugin-copy';
 import url from '@rollup/plugin-url';
 import wasm from '@rollup/plugin-wasm';
 import OMT from "@surma/rollup-plugin-off-main-thread";
+import bundleWorker from 'rollup-plugin-bundle-worker';
 
 export default {
   input: 'src/index.js',
@@ -19,6 +20,7 @@ export default {
     commonjs(),
     OMT(),
     wasm(),
+    bundleWorker(),
     url({
       include: ['**/*.wasm', '**/*.worker.js'],  // Match both .wasm and .worker.js files      
       limit: 0, // Always emit as separate files
