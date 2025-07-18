@@ -20,8 +20,9 @@ export default {
     OMT(),
     wasm(),
     url({
-      include: '**/*.wasm',
+      include: ['**/*.wasm', '**/*.worker.js'],  // Match both .wasm and .worker.js files      
       limit: 0, // Always emit as separate files
+      emitFiles: true,  // Emit the worker script as part of the bundle
     }),
     terser(),
     copy({
