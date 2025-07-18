@@ -30,7 +30,7 @@ export default {
     copy({
       targets: [
         // ✅ Keep model-related files together
-        { src: 'model/peekr.onnx', dest: 'dist/model' },
+        { src: 'public/*', dest: 'dist/' },
         { src: 'node_modules/onnxruntime-web/dist/*.wasm', dest: 'dist' },
         // ✅ Copy worker script
         { src: 'src/worker.js', dest: 'dist' }
@@ -38,6 +38,5 @@ export default {
       verbose: true,
       hook: 'buildEnd',
     }),
-    
   ],
 };
