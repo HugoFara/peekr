@@ -30,7 +30,7 @@ I have attached a `public/index.html` demo file. To run this demo, follow these 
 2. Then, run the demo using npx with the following command:
 
    ```bash
-   cd src
+   cd dist
    npx http-server .
    ```
 
