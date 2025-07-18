@@ -1,31 +1,40 @@
 # 👁️ Peekr: Browser-based Eye Tracking
 
-**Peekr** is a lightweight, browser-compatible webcam eye tracking module. It runs entirely in the browser — no installation, no data sent to a server. 
+**Peekr** is a lightweight, browser-compatible webcam eye tracking module. It runs entirely in the browser — no installation, no data sent to a server.
 
 ---
-### 🎓 Background
-Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine learning engineer. The project emerged during Aryaman's PhD at the University of Auckland and continued through his postdoctoral research at **Stanford University**. Peekr's underlying ML model was trained on **268,000+ image frames** from **264 participants** recruited via Prolific. Each participant used their own personal setup. 
+
+## 🎓 Background
+
+Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine learning engineer. The project emerged during Aryaman's PhD at the University of Auckland and continued through his postdoctoral research at **Stanford University**. Peekr's underlying ML model was trained on **268,000+ image frames** from **264 participants** recruited via Prolific. Each participant used their own personal setup.
 
 **Accuracy** (after calibration):
+
 * Mean horizontal error: **1.53 cm** (~1.75° visual angle)
 * Mean vertical error: **2.20 cm** (~2.52° visual angle)
-These results were obtained from 30 randomly selected participants using their own setups, with no supervision. Each participant followed a stimulus on screen after completing a simple 5-dot calibration. The calibration consisted of four dots in the corners and one in the center of the screen. After this, a linear fit was applied separately to the x and y axes to adjust the gaze predictions. 
+These results were obtained from 30 randomly selected participants using their own setups, with no supervision. Each participant followed a stimulus on screen after completing a simple 5-dot calibration. The calibration consisted of four dots in the corners and one in the center of the screen. After this, a linear fit was applied separately to the x and y axes to adjust the gaze predictions.
 
 ---
+
 ## 🧪 Demo (with Calibration Panel)
 
 I have attached a `public/index.html` demo file. To run this demo, follow these steps:
 
 1. First, build the project by running the following command:
+
    ```bash
+   npm install
    npm run build
+   ```
 
 2. Then, run the demo using npx with the following command:
+
    ```bash
+   cd src
    npx http-server .
+   ```
 
 ---
-
 
 ## 🧠 Available Functions
 
@@ -54,7 +63,6 @@ Stops webcam and gaze processing.
 
 ---
 
-
 ## 📁 Files Included
 
 | File          | Purpose                         |
@@ -77,6 +85,7 @@ Then:
 ```js
 import * as Peekr from 'peekr';
 ```
+
 ---
 
 ## 📦 Publishing
@@ -100,4 +109,4 @@ Built by **Aryaman Taore** at [Dakin Lab](https://www.dakinlab.org) and [Stanfor
 
 ## 🗪 License
 
-MIT
+[MIT](https://mit-license.org/)
