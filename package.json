@@ -18,7 +18,8 @@
     "scripts": {
         "dev": "rollup --config --watch",
         "build": "rollup --config",
-        "serve": "npx http-server dist"
+        "serve": "npx http-server dist",
+        "lint": "npx eslint"
     },
     "keywords": [
         "eye-tracking",
@@ -58,6 +59,7 @@
         "store2": "^2.13.2"
     },
     "devDependencies": {
+        "@eslint/js": "^9.31.0",
         "@rollup/plugin-commonjs": "^25.0.0",
         "@rollup/plugin-node-resolve": "^15.2.3",
         "@rollup/plugin-terser": "^0.4.3",
@@ -67,6 +69,8 @@
         "@surma/rollup-plugin-off-main-thread": "^2.2.3",
         "copy-webpack-plugin": "^13.0.0",
         "dotenv": "^17.2.0",
+        "eslint": "^9.31.0",
+        "globals": "^16.3.0",
         "html-webpack-plugin": "^5.6.3",
         "ndarray": "^1.0.19",
         "ndarray-ops": "^1.2.2",

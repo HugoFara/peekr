@@ -17,68 +17,39 @@ rightEyeCanvas.width = 128;
 rightEyeCanvas.height = 128;
 const rightEyectx = rightEyeCanvas.getContext("2d",{ willReadFrequently: true });
 
-// export function createWorker(onGazeCallback) {
-//     if (myWorker) return myWorker;  // ✅ Reuse if already exists
+export function createWorker(onGazeCallback, onModelReady = null) {
+  if (myWorker) return myWorker;
 
-//     myWorker = new Worker(new URL('worker.js', import.meta.url), {
-//       type: "module"
-//     });
-  
-//     myWorker.onmessage = (e) => {
-//       const { type, error, ...data } = e.data;
+  myWorker = new Worker(new URL('./worker.js', import.meta.url), {
+    type: "module"
+  });
 
-//       if (e.data.error) {
-//         console.error("Worker error:", e.data.error);
-//         return;
-//       }
+  myWorker.onmessage = (e) => {
+    const { type, error, ...data } = e.data;
 
-//         // Ignore model lifecycle messages
-//       if (type === "modelLoaded" || type === "modelLoadFailed") {
-//         console.log(`ℹ️ Received "${type}" from worker`);
-//         return;
-//       }
-  
-//       let output = e.data;
-//       // console.log(output)
-//       if (onGazeCallback) onGazeCallback(output);
-//     };
+    if (error) {
+      console.error("Worker error:", error);
+      return;
+    }
 
-//     return myWorker;
-//   }
+    // Handle model lifecycle messages
+    if (type === "modelLoaded") {
+      console.log(`ℹ️ Received "modelLoaded" from worker`);
+      if (onModelReady) onModelReady();
+      return;
+    }
 
-  export function createWorker(onGazeCallback, onModelReady = null) {
-    if (myWorker) return myWorker;
-  
-    myWorker = new Worker(new URL('./worker.js', import.meta.url), {
-      type: "module"
-    });
-  
-    myWorker.onmessage = (e) => {
-      const { type, error, ...data } = e.data;
-  
-      if (error) {
-        console.error("Worker error:", error);
-        return;
-      }
-  
-      // Handle model lifecycle messages
-      if (type === "modelLoaded") {
-        console.log(`ℹ️ Received "modelLoaded" from worker`);
-        if (onModelReady) onModelReady();
-        return;
-      }
-  
-      if (type === "modelLoadFailed") {
-        console.error("⚠️ Model failed to load inside worker");
-        return;
-      }
-  
-      // All other messages are gaze updates
-      if (onGazeCallback) onGazeCallback(data);
-    };
-  
-    return myWorker;
-  }
+    if (type === "modelLoadFailed") {
+      console.error("⚠️ Model failed to load inside worker");
+      return;
+    }
+
+    // All other messages are gaze updates
+    if (onGazeCallback) onGazeCallback(data);
+  };
+
+  return myWorker;
+}
 
 export function setupFaceMesh(video, canvas, onReady,onGaze ) {
     inputVideo = video;
@@ -125,13 +96,13 @@ export function startInference() {
 }
       
 export function stopInference() {
-        continueProcessing = false;
-      
-        if (rafId !== null) {
-          cancelAnimationFrame(rafId);
-          rafId = null;
-        }
+    continueProcessing = false;
+  
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
     }
+}
       
 
 function onResultsFaceMesh(results) {
@@ -194,14 +165,11 @@ function onResultsFaceMesh(results) {
 
     const imageDataL = leftEyectx.getImageData(0, 0, 128, 128);
     let input1 = preprocess(imageDataL.data, 128, 128);
-    // const input1 = new Tensor(preprocessedData, "float32", [1, 3, 128, 128]);
 
     const imageDataR = rightEyectx.getImageData(0, 0, 128, 128);
     let input2 = preprocess(imageDataR.data, 128, 128);
-    // const input2 = new Tensor(preprocessedData, "float32", [1, 3, 128, 128]);
 
     let kpsTensor = preprocess_kps(kps);
-    // const kpsTensor = new Tensor(preprocessedData, "float32", [1, 8]);
 
     myWorker.postMessage({
         input1: { data: input1 },
@@ -238,7 +206,7 @@ function onResultsFaceMesh(results) {
     return new Float32Array(dataProcessed.data);
   }
 
-  function preprocess_kps(data, width, height) {
+  function preprocess_kps(data) {
     const dataFromImage = ndarray(new Float32Array(data), [data.length]);
     const dataProcessed = ndarray(new Float32Array(data.length), [
       1,

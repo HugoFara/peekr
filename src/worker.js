@@ -1,4 +1,4 @@
-import { Tensor, InferenceSession, env } from "onnxruntime-web";
+import { Tensor, InferenceSession } from "onnxruntime-web";
 
 let myOnnxSession = null;
 

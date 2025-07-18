@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed: total rewrite of the Rollup configuration.
 - Changed: updated deprecated code and packages.
 - Fixed: all gitignored files were removed from the cache.
+- Fixed: code clean-up and linting.
 
 ## [1.0.5] - 2025-07-18
 
