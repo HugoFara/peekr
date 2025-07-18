@@ -4,9 +4,7 @@ let myOnnxSession = null;
 
 async function loadModel() {
   if (myOnnxSession) return;
-  env.wasm.simd = true;
-  // env.wasm.wasmPaths = './'; // ensure correct path
-
+  
   myOnnxSession = await InferenceSession.create(
     "model/peekr.onnx",
     {
