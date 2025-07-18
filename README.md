@@ -12,38 +12,20 @@ Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine le
 These results were obtained from 30 randomly selected participants using their own setups, with no supervision. Each participant followed a stimulus on screen after completing a simple 5-dot calibration. The calibration consisted of four dots in the corners and one in the center of the screen. After this, a linear fit was applied separately to the x and y axes to adjust the gaze predictions. 
 
 ---
+## 🧪 Demo (with Calibration Panel)
 
-## 🚀 Quick Start (via CDN / Script Tag)
+I have attached a `public/index.html` demo file. To run this demo, follow these steps:
 
-```html
-<script type="module">
-  import * as Peekr from 'https://unpkg.com/peekr@latest/dist/index.js';
+1. First, build the project by running the following command:
+   ```bash
+   npm run build
 
-  Peekr.initEyeTracking({
-    onReady: () => {
-      console.log("✅ Model Loaded.");
-    },
-    onGaze: (gaze) => {
-      const [x, y] = gaze.output.cpuData;
-      console.log(`Gaze Position: ${x}, ${y}`);
-    }
-  });
-</script>
-```
-
-Or load via npm:
-
-```bash
-npm install peekr
-```
-
-Then:
-
-```js
-import * as Peekr from 'peekr';
-```
+2. Then, run the demo using npx with the following command:
+   ```bash
+   npx http-server .
 
 ---
+
 
 ## 🧠 Available Functions
 
@@ -72,19 +54,6 @@ Stops webcam and gaze processing.
 
 ---
 
-## 🧪 Demo (with Calibration Panel)
-
-I have attached a `public/index.html` demo file. To run this demo, follow these steps:
-
-1. First, build the project by running the following command:
-   ```bash
-   npm run build
-
-2. Then, run the demo using npx with the following command:
-   ```bash
-   npx http-server .
-
----
 
 ## 📁 Files Included
 
@@ -95,6 +64,19 @@ I have attached a `public/index.html` demo file. To run this demo, follow these 
 | `peekr.onnx`  | Gaze detection model            |
 | `.wasm` files | ONNX Runtime Web WASM backend   |
 
+---
+
+## 🚀 Load via npm
+
+```bash
+npm install peekr
+```
+
+Then:
+
+```js
+import * as Peekr from 'peekr';
+```
 ---
 
 ## 📦 Publishing
