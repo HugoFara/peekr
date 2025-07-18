@@ -2,8 +2,6 @@
 
 **Peekr** is a lightweight, browser-compatible webcam eye tracking module. It runs entirely in the browser — no installation, no data sent to a server.
 
----
-
 ## 🎓 Background
 
 Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine learning engineer. The project emerged during Aryaman's PhD at the University of Auckland and continued through his postdoctoral research at **Stanford University**. Peekr's underlying ML model was trained on **268,000+ image frames** from **264 participants** recruited via Prolific. Each participant used their own personal setup.
@@ -30,11 +28,8 @@ I have attached a `public/index.html` demo file. To run this demo, follow these 
 2. Then, run the demo using npx with the following command:
 
    ```bash
-   cd dist
-   npx http-server .
+   npm run serve
    ```
-
----
 
 ## 🧠 Available Functions
 
@@ -49,19 +44,13 @@ Initializes the webcam, loads the ONNX model, and sets up gaze detection.
   gaze.output.cpuData = [x, y]; // Both values in range ~[0, 1]
   ```
 
----
-
 ### `Peekr.runEyeTracking()`
 
 Starts real-time gaze prediction.
 
----
-
 ### `Peekr.stopEyeTracking()`
 
 Stops webcam and gaze processing.
-
----
 
 ## 📁 Files Included
 
@@ -86,8 +75,6 @@ Then:
 import * as Peekr from 'peekr';
 ```
 
----
-
 ## 📦 Publishing
 
 To build and publish:
@@ -99,13 +86,9 @@ npm publish --access public
 
 Make sure your `dist/` includes the model, worker, and all necessary WASM files.
 
----
-
 ## 🧠 Credits
 
 Built by **Aryaman Taore** at [Dakin Lab](https://www.dakinlab.org) and [Stanford Brain Development & Education Lab](https://edneuro.stanford.edu).
-
----
 
 ## 🗪 License
 

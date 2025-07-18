@@ -16,9 +16,9 @@
         "model"
     ],
     "scripts": {
-        "dev": "rollup -c -w",
-        "build": "rollup -c",
-        "serve": "npx http-server public"
+        "dev": "rollup --config --watch",
+        "build": "rollup --config",
+        "serve": "npx http-server dist"
     },
     "keywords": [
         "eye-tracking",
