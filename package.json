@@ -1,6 +1,6 @@
 {
     "name": "peekr",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "type": "module",
     "description": "Browser-based ONNX eye tracking module using MediaPipe + onnxruntime-web",
     "main": "dist/index.js",
