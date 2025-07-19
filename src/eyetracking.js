@@ -20,9 +20,7 @@ const rightEyectx = rightEyeCanvas.getContext("2d",{ willReadFrequently: true })
 export function createWorker(onGazeCallback, onModelReady = null) {
   if (myWorker) return myWorker;
 
-  myWorker = new Worker(new URL('./worker.js', import.meta.url), {
-    type: "module"
-  });
+  myWorker = new Worker('./worker.js', { type: "module" });
 
   myWorker.onmessage = (e) => {
     const { type, error, ...data } = e.data;
@@ -51,9 +49,8 @@ export function createWorker(onGazeCallback, onModelReady = null) {
   return myWorker;
 }
 
-export function setupFaceMesh(video, canvas, onReady,onGaze ) {
+export function setupFaceMesh(video, onReady,onGaze ) {
     inputVideo = video;
-    // myWorker = createWorker(onGaze);
     myWorker = createWorker(onGaze, () => {
       console.log("👁️ Model loaded inside worker, calling onReady");
       if (onReady) onReady();

@@ -31,9 +31,8 @@ export default {
       targets: [
         // ✅ Keep model-related files together
         { src: 'public/*', dest: 'dist/' },
+        // Necessary to solve dependencies
         { src: 'node_modules/onnxruntime-web/dist/*.wasm', dest: 'dist' },
-        // ✅ Copy worker script
-        { src: 'src/worker.js', dest: 'dist' }
       ],
       verbose: true,
       hook: 'buildEnd',

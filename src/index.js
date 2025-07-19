@@ -31,11 +31,13 @@ export function initEyeTracking(
   }
   
   console.log("initialising ...")
-  navigator.mediaDevices.getUserMedia({   video: {
-    facingMode: "user"  // Ensures front-facing camera
-  } }).then((stream) => {
+  navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: "user"  // Ensures front-facing camera
+    }
+  }).then((stream) => {
     video.srcObject = stream;
-    setupFaceMesh(video, canvas, () => {
+    setupFaceMesh(video, () => {
       isInitialized = true;
       console.log("initialised, ready to run eyetracking")
       if (onReady) onReady();
