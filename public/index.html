@@ -51,6 +51,7 @@
   <button id="initBtn" onclick="startEyeTrackingWithCallbacks()">Init Eye Tracking</button>
   <button id="startBtn" onclick="Peekr.runEyeTracking()" disabled>Run Eye Tracking</button>
   <button id="stopBtn" onclick="Peekr.stopEyeTracking()" disabled>Stop Eye Tracking</button>
+  <button id="calibBtn" onclick="startAssistedCalibration()" disabled>Assisted Calibration</button>
   
 
   <div class="control-panel">
@@ -73,6 +74,103 @@
         return [ xpred, ypred ];
     }
 
+    // Assisted Calibration Logic
+    let calibrationInProgress = false;
+    let calibrationStep = 0;
+    let calibrationGazeData = [];
+    const calibrationCorners = [
+      { x: 0.1, y: 0.1 }, // top-left
+      { x: 0.9, y: 0.1 }, // top-right
+      { x: 0.9, y: 0.9 }, // bottom-right
+      { x: 0.1, y: 0.9 }  // bottom-left
+    ];
+    let calibrationDot = null;
+    let calibrationDotReady = false;
+    let calibrationGazeListener = (gaze) => {};
+
+    function startAssistedCalibration() {
+      if (calibrationInProgress) return;
+
+      Peekr.runEyeTracking();
+
+      calibrationInProgress = true;
+      calibrationStep = 0;
+      calibrationGazeData = [];
+      showCalibrationDot();
+      document.getElementById("log").textContent += "\n🔵 Assisted calibration started. Follow the blue dot.";
+      // Temporarily override onGaze
+      calibrationGazeListener = (gaze) => {
+        // Wait a short time at each corner, then record gaze
+        if (calibrationStep < calibrationCorners.length) {
+          // Only record after a short delay to let user focus
+          if (!calibrationDotReady) return;
+          calibrationGazeData.push({
+            rawX: gaze.output.cpuData[0],
+            rawY: gaze.output.cpuData[1]
+          });
+          calibrationStep++;
+          if (calibrationStep < calibrationCorners.length) {
+            showCalibrationDot();
+          } else {
+            finishAssistedCalibration();
+          }
+        }
+      };
+      showCalibrationDot();
+    }
+
+    function showCalibrationDot() {
+      if (!calibrationDot) {
+        calibrationDot = document.createElement('div');
+        calibrationDot.style.position = 'fixed';
+        calibrationDot.style.width = '30px';
+        calibrationDot.style.height = '30px';
+        calibrationDot.style.background = 'blue';
+        calibrationDot.style.borderRadius = '50%';
+        calibrationDot.style.zIndex = 10000;
+        calibrationDot.style.pointerEvents = 'none';
+        document.body.appendChild(calibrationDot);
+      }
+      const corner = calibrationCorners[calibrationStep];
+      calibrationDot.style.left = `calc(${corner.x * 100}% - 15px)`;
+      calibrationDot.style.top = `calc(${corner.y * 100}% - 15px)`;
+      calibrationDot.style.display = 'block';
+      calibrationDotReady = false;
+      setTimeout(() => {
+        calibrationDotReady = true;
+      }, 1000); // 1s for user to focus
+    }
+
+    function finishAssistedCalibration() {
+      calibrationDot.style.display = 'none';
+      calibrationInProgress = false;
+      // Compute calibration coefficients
+      // Corners: [TL, TR, BR, BL]
+      // Screen X: [0, 1, 1, 0], Y: [0, 0, 1, 1]
+      // Gaze: calibrationGazeData[i].rawX, rawY
+      // Linear fit: x_screen = a * (rawX - 0.5) + b
+      //             y_screen = c * rawY + d
+      // Use least squares for a, b, c, d
+      const X = calibrationGazeData.map(d => d.rawX - 0.5);
+      const Y = calibrationGazeData.map(d => d.rawY);
+      const x_screen = [0, 1, 1, 0];
+      const y_screen = [0, 0, 1, 1];
+      // Solve for x: x_screen = a * X + b
+      const a = (x_screen[1] - x_screen[0] + x_screen[2] - x_screen[3]) / (X[1] - X[0] + X[2] - X[3]);
+      const b = x_screen[0] - a * X[0];
+      // Solve for y: y_screen = c * Y + d
+      const c = (y_screen[2] - y_screen[1] + y_screen[3] - y_screen[0]) / (Y[2] - Y[1] + Y[3] - Y[0]);
+      const d = y_screen[0] - c * Y[0];
+      // Update UI
+      document.getElementById("xCoefInput").value = (-a).toFixed(2); // flip sign for internal use
+      document.getElementById("xInterceptInput").value = (b * 100).toFixed(0);
+      document.getElementById("yCoefInput").value = c.toFixed(2);
+      document.getElementById("yInterceptInput").value = (d * 100).toFixed(0);
+      document.getElementById("log").textContent += `\n✅ Assisted calibration complete. Coefficients set.`;
+      calibrationGazeListener = (gaze) => {};
+    }
+
+
     function startEyeTrackingWithCallbacks() {
       document.getElementById("initBtn").disabled = true;
       const dot = document.getElementById("gaze-dot");
@@ -84,8 +182,15 @@
             // Enable buttons
             document.getElementById("startBtn").disabled = false;
             document.getElementById("stopBtn").disabled = false;
+            document.getElementById("calibBtn").disabled = false;
+
+            dot.style.display = "block";
         },
         onGaze: (gaze) => {
+          if (calibrationInProgress) {
+            calibrationGazeListener(gaze);
+            return;
+          }
           const rawX = gaze.output.cpuData[0];  // range ~ [0,1]
           const rawY = gaze.output.cpuData[1];
 
@@ -97,10 +202,24 @@
 
           const x_coef = -x_coef_ui; // flip x coef internally
 
-          const [ xpred, ypred ] = moveCalibratedDot(rawX, rawY, x_coef, x_intercept / 100, y_coef, y_intercept / 100);
+          let [ xpred, ypred ] = moveCalibratedDot(rawX, rawY, x_coef, x_intercept / 100, y_coef, y_intercept / 100);
+
+          // Clamp to screen borders and change color if out of bounds
+          let clamped = false;
+          const dotRadius = 10; // since dot is 20x20px and transform: translate(-10px, -10px)
+          const minX = dotRadius;
+          const minY = dotRadius;
+          const maxX = window.innerWidth - dotRadius;
+          const maxY = window.innerHeight - dotRadius;
+
+          if (xpred < minX) { xpred = minX; clamped = true; }
+          if (xpred > maxX) { xpred = maxX; clamped = true; }
+          if (ypred < minY) { ypred = minY; clamped = true; }
+          if (ypred > maxY) { ypred = maxY; clamped = true; }
 
           dot.style.left = `${xpred}px`;
           dot.style.top = `${ypred}px`;
+          dot.style.background = clamped ? 'blue' : 'red';
         }
       });
     }

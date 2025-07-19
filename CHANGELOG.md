@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+- Added: assisted calibration to set calibration parameters easily.
 - Added: cleaner [README.md](./README.md) to build the app.
 - Added: changed rollup configuration to run the app in one command.
+- Added: if the dot goes outside of screen, display in blue.
 - Added: adds a favicon.ico.
 - Changed: total rewrite of the Rollup configuration.
 - Changed: updated deprecated code and packages.

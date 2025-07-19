@@ -12,8 +12,6 @@ Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine le
 * Mean vertical error: **2.20 cm** (~2.52° visual angle)
 These results were obtained from 30 randomly selected participants using their own setups, with no supervision. Each participant followed a stimulus on screen after completing a simple 5-dot calibration. The calibration consisted of four dots in the corners and one in the center of the screen. After this, a linear fit was applied separately to the x and y axes to adjust the gaze predictions.
 
----
-
 ## 🧪 Demo (with Calibration Panel)
 
 I have attached a `public/index.html` demo file. To run this demo, follow these steps:
@@ -25,11 +23,13 @@ I have attached a `public/index.html` demo file. To run this demo, follow these 
    npm run build
    ```
 
-2. Then, run the demo using npx with the following command:
+2. Then, run the demo using npm with the following command:
 
    ```bash
    npm run serve
    ```
+
+3. Start by loading the model ("Init Eye Tracking"). Then, either adjust the calibration values by yourself, or use the "Assisted Calibration" utility.
 
 ## 🧠 Available Functions
 
@@ -89,6 +89,8 @@ Make sure your `dist/` includes the model, worker, and all necessary WASM files.
 ## 🧠 Credits
 
 Built by **Aryaman Taore** at [Dakin Lab](https://www.dakinlab.org) and [Stanford Brain Development & Education Lab](https://edneuro.stanford.edu).
+
+The web part received major changes from [Hugo Fara](https://hugofara.net).
 
 ## 🗪 License
 
