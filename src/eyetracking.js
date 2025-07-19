@@ -3,7 +3,7 @@ import ops from "ndarray-ops";
 
 let rafId;
 let continueProcessing = false;
-let myWorker = null;  // ✅ Track current worker instance
+let eyeTrackingWorker = null;  // ✅ Track current worker instance
 let inputVideo;
 let faceMesh;
 
@@ -18,11 +18,11 @@ rightEyeCanvas.height = 128;
 const rightEyectx = rightEyeCanvas.getContext("2d",{ willReadFrequently: true });
 
 export function createWorker(onGazeCallback, onModelReady = null) {
-  if (myWorker) return myWorker;
+  if (eyeTrackingWorker) return eyeTrackingWorker;
 
-  myWorker = new Worker('./worker.js', { type: "module" });
+  eyeTrackingWorker = new Worker('./worker.js', { type: "module" });
 
-  myWorker.onmessage = (e) => {
+  eyeTrackingWorker.onmessage = (e) => {
     const { type, error, ...data } = e.data;
 
     if (error) {
@@ -46,12 +46,12 @@ export function createWorker(onGazeCallback, onModelReady = null) {
     if (onGazeCallback) onGazeCallback(data);
   };
 
-  return myWorker;
+  return eyeTrackingWorker;
 }
 
 export function setupFaceMesh(video, onReady,onGaze ) {
     inputVideo = video;
-    myWorker = createWorker(onGaze, () => {
+    eyeTrackingWorker = createWorker(onGaze, () => {
       console.log("👁️ Model loaded inside worker, calling onReady");
       if (onReady) onReady();
     });
@@ -73,7 +73,6 @@ export function setupFaceMesh(video, onReady,onGaze ) {
   
     inputVideo.addEventListener("play", () => {
       continueProcessing = true;
-      // onReady?.();
     });
   }
 
@@ -168,11 +167,11 @@ function onResultsFaceMesh(results) {
 
     let kpsTensor = preprocess_kps(kps);
 
-    myWorker.postMessage({
-        input1: { data: input1 },
-        input2: { data: input2 },
-        kpsTensor: { data: kpsTensor },
-      });
+    eyeTrackingWorker.postMessage({
+      input1: { data: input1 },
+      input2: { data: input2 },
+      kpsTensor: { data: kpsTensor },
+    });
   }
 
 
