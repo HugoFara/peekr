@@ -29,12 +29,11 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
 
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4.6.2
+    - name: Upload static files as artifact
+      id: deployment
+      uses: actions/upload-pages-artifact@v3
       with:
-        name: github-pages
-        # A file, directory or wildcard pattern that describes what to upload
-        path: './dist'
+        path: dist/
 
   deploy:
     # Add a dependency to the build job
@@ -54,8 +53,6 @@ jobs:
     # Specify runner + deployment step
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
