@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added: cleaner [README.md](./README.md) to build the app.
 - Added: changed rollup configuration to run the app in one command.
+- Added: adds a favicon.ico.
 - Changed: total rewrite of the Rollup configuration.
 - Changed: updated deprecated code and packages.
 - Fixed: all gitignored files were removed from the cache.
