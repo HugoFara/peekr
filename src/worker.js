@@ -1,13 +1,11 @@
-import { Tensor, InferenceSession, env } from "onnxruntime-web";
+import { Tensor, InferenceSession } from "onnxruntime-web";
 
-let myOnnxSession = null;
+let onnxSession = null;
 
 async function loadModel() {
-  if (myOnnxSession) return;
-  env.wasm.simd = true;
-  // env.wasm.wasmPaths = './'; // ensure correct path
-
-  myOnnxSession = await InferenceSession.create(
+  if (onnxSession) return;
+  
+  onnxSession = await InferenceSession.create(
     "model/peekr.onnx",
     {
       executionProviders: ["wasm"],
@@ -23,16 +21,29 @@ loadModel().catch((err) => {
   console.error("Failed to load model:", err);
 });
 
+async function runInference(input1, input2, kps) {
+    const inputTensor1 = new Tensor("float32", input1.data, [1, 3, 128, 128]);
+    const inputTensor2 = new Tensor("float32", input2.data, [1, 3, 128, 128]);
+    const kpsTensor = new Tensor("float32", kps.data, [1, 8]);
+
+    return onnxSession.run({ 
+      input1: inputTensor1,
+      input2: inputTensor2,
+      kps: kpsTensor
+    });
+}
+
 onmessage = async function (e) {
+  if (!onnxSession) {
+    console.error("[Worker]: Error processing, model not initialized");
+    this.postMessage({error: "Model not initialized"})
+    return;
+  }
+  
   try {
-    if (!myOnnxSession) throw new Error("Model not initialized");
+    const result = await runInference(e.data.input1, e.data.input2, e.data.kpsTensor)
 
-    const input1 = new Tensor("float32", e.data.input1.data, [1, 3, 128, 128]);
-    const input2 = new Tensor("float32", e.data.input2.data, [1, 3, 128, 128]);
-    const kpsTensor = new Tensor("float32", e.data.kpsTensor.data, [1, 8]);
-
-    const result = await myOnnxSession.run({ input1, input2, kps: kpsTensor });
-    postMessage(result); 
+    postMessage(result);
   } catch (error) {
     console.error("[Worker]: Error processing message", error);
     postMessage({ error: error.message });
