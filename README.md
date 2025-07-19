@@ -2,6 +2,9 @@
 
 **Peekr** is a lightweight, browser-compatible webcam eye tracking module. It runs entirely in the browser — no installation, no data sent to a server.
 
+> [!TIP]
+> You can test it on [GitHub Pages](https://hugofara.github.io/peekr/).
+
 ## 🎓 Background
 
 Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine learning engineer. The project emerged during Aryaman's PhD at the University of Auckland and continued through his postdoctoral research at **Stanford University**. Peekr's underlying ML model was trained on **268,000+ image frames** from **264 participants** recruited via Prolific. Each participant used their own personal setup.

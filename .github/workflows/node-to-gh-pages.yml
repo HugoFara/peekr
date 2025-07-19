@@ -5,9 +5,9 @@ name: Node.js CI to GitHub Pages
 
 on:
   push:
-    branches: [ "new-calibration" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "new-calibration" ]
+    branches: [ "main" ]
 
 jobs:
   build:

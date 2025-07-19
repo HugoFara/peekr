@@ -7,16 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
-- Added: assisted calibration to set calibration parameters easily.
-- Added: cleaner [README.md](./README.md) to build the app.
-- Added: changed rollup configuration to run the app in one command.
-- Added: if the dot goes outside of screen, display in blue.
-- Added: adds a favicon.ico.
-- Changed: total rewrite of the Rollup configuration.
-- Changed: updated deprecated code and packages.
-- Fixed: all gitignored files were removed from the cache.
-- Fixed: code clean-up and linting.
-- Removed: many unnessary dev dependencies.
+### Added
+
+- Assisted calibration to set calibration parameters easily.
+- Cleaner [README.md](./README.md) to build the app.
+- Changed rollup configuration to run the app in one command.
+- If the dot goes outside of screen, display in blue.
+- Adds a favicon.ico.
+- Adds an automated build & deployement to GitHub pages.
+
+### Changed
+
+- Total rewrite of the Rollup configuration.
+- Updated deprecated code and packages.
+
+### Fixed
+
+- All gitignored files were removed from the cache.
+- Code clean-up and linting.
+
+### Removed
+
+- Many unnessary dev dependencies.
 
 ## [1.0.5] - 2025-07-18
 
