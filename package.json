@@ -32,7 +32,6 @@
     "author": "Aryaman Taore",
     "license": "MIT",
     "dependencies": {
-        "@mediapipe/face_mesh": "^0.4.1633559619",
         "ndarray": "^1.0.19",
         "ndarray-ops": "^1.2.2",
         "onnxruntime-web": "1.19.2"
@@ -44,22 +43,12 @@
         "@rollup/plugin-terser": "^0.4.3",
         "@rollup/plugin-url": "^8.0.2",
         "@rollup/plugin-wasm": "^6.2.2",
-        "@sentry/webpack-plugin": "^3.6.0",
         "@surma/rollup-plugin-off-main-thread": "^2.2.3",
-        "copy-webpack-plugin": "^13.0.0",
-        "dotenv": "^17.2.0",
         "eslint": "^9.31.0",
-        "globals": "^16.3.0",
-        "html-webpack-plugin": "^5.6.3",
         "ndarray": "^1.0.19",
         "ndarray-ops": "^1.2.2",
-        "path-browserify": "^1.0.1",
         "rollup": "^4.0.2",
         "rollup-plugin-bundle-worker": "^0.1.0",
-        "rollup-plugin-copy": "^3.5.0",
-        "webpack": "^5.100.2",
-        "webpack-cli": "^6.0.1",
-        "webpack-dev-server": "^5.2.2",
-        "webpack-merge": "^6.0.1"
+        "rollup-plugin-copy": "^3.5.0"
     }
 }
