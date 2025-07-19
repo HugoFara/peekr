@@ -34,7 +34,7 @@ jobs:
       with:
         name: github-pages
         # A file, directory or wildcard pattern that describes what to upload
-        path: dist/
+        path: './dist'
 
   deploy:
     # Add a dependency to the build job
