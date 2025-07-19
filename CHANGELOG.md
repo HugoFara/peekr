@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed: updated deprecated code and packages.
 - Fixed: all gitignored files were removed from the cache.
 - Fixed: code clean-up and linting.
+- Removed: many unnessary dev dependencies.
 
 ## [1.0.5] - 2025-07-18
 
