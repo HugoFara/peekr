@@ -20,7 +20,10 @@ const rightEyectx = rightEyeCanvas.getContext("2d",{ willReadFrequently: true })
 export function createWorker(onGazeCallback, onModelReady = null) {
   if (eyeTrackingWorker) return eyeTrackingWorker;
 
-  eyeTrackingWorker = new Worker('./worker.js', { type: "module" });
+  eyeTrackingWorker = new Worker(
+    new URL('./worker.js', import.meta.url),
+    { type: "module" }
+  );
 
   eyeTrackingWorker.onmessage = (e) => {
     const { type, error, ...data } = e.data;
