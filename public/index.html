@@ -66,6 +66,13 @@
   <div id="gaze-dot"></div>
 
   <script>
+    function moveCalibratedDot(rawX, rawY, x_coef, x_intercept, y_coef, y_intercept) {
+        const xpred = (x_coef * (rawX - 0.5) + x_intercept) * screen.width;
+        const ypred = (y_coef * rawY + y_intercept) * screen.height;
+
+        return [ xpred, ypred ];
+    }
+
     function startEyeTrackingWithCallbacks() {
       document.getElementById("initBtn").disabled = true;
       const dot = document.getElementById("gaze-dot");
@@ -90,12 +97,10 @@
 
           const x_coef = -x_coef_ui; // flip x coef internally
 
-          const xpred = ((x_coef * (rawX * 100 - 50) + x_intercept) * screen.width) / 100;
-          const ypred = ((y_coef * (rawY * 100) + y_intercept) * screen.height) / 100;
+          const [ xpred, ypred ] = moveCalibratedDot(rawX, rawY, x_coef, x_intercept / 100, y_coef, y_intercept / 100);
 
           dot.style.left = `${xpred}px`;
           dot.style.top = `${ypred}px`;
-          dot.style.display = "block";
         }
       });
     }
