@@ -84,6 +84,8 @@
             // Enable buttons
             document.getElementById("startBtn").disabled = false;
             document.getElementById("stopBtn").disabled = false;
+
+            dot.style.display = "block";
         },
         onGaze: (gaze) => {
           const rawX = gaze.output.cpuData[0];  // range ~ [0,1]
@@ -97,10 +99,24 @@
 
           const x_coef = -x_coef_ui; // flip x coef internally
 
-          const [ xpred, ypred ] = moveCalibratedDot(rawX, rawY, x_coef, x_intercept / 100, y_coef, y_intercept / 100);
+          let [ xpred, ypred ] = moveCalibratedDot(rawX, rawY, x_coef, x_intercept / 100, y_coef, y_intercept / 100);
+
+          // Clamp to screen borders and change color if out of bounds
+          let clamped = false;
+          const dotRadius = 10; // since dot is 20x20px and transform: translate(-10px, -10px)
+          const minX = dotRadius;
+          const minY = dotRadius;
+          const maxX = window.innerWidth - dotRadius;
+          const maxY = window.innerHeight - dotRadius;
+
+          if (xpred < minX) { xpred = minX; clamped = true; }
+          if (xpred > maxX) { xpred = maxX; clamped = true; }
+          if (ypred < minY) { ypred = minY; clamped = true; }
+          if (ypred > maxY) { ypred = maxY; clamped = true; }
 
           dot.style.left = `${xpred}px`;
           dot.style.top = `${ypred}px`;
+          dot.style.background = clamped ? 'blue' : 'red';
         }
       });
     }
