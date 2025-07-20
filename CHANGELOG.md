@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Total rewrite of the Rollup configuration.
 - Updated deprecated code and packages.
+- Updated node modules.
 
 ### Fixed
 
