@@ -4,7 +4,7 @@
     "type": "module",
     "description": "Browser-based ONNX eye tracking module using MediaPipe + onnxruntime-web",
     "scripts": {
-        "dev": "vite build && vite preview",
+        "serve": "vite build && vite preview",
         "build": "vite build",
         "preview": "vite preview",
         "lint": "npx eslint --fix"

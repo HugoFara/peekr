@@ -15,14 +15,7 @@ Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine le
 * Mean vertical error: **2.20 cm** (~2.52° visual angle)
 These results were obtained from 30 randomly selected participants using their own setups, with no supervision. Each participant followed a stimulus on screen after completing a simple 5-dot calibration. The calibration consisted of four dots in the corners and one in the center of the screen. After this, a linear fit was applied separately to the x and y axes to adjust the gaze predictions.
 
-## 🧪 Demo (with Calibration Panel)
-
-A demo should be available at <https://hugofara.github.io/peekr/>.
-
-Start by loading the model ("Init Eye Tracking").
-Then, either adjust the calibration values by yourself, or use the "Assisted Calibration" utility.
-
-## Build
+## Install
 
 You can rebuild the package with [Node](https://nodejs.org/en/download) and Vite.
 
@@ -30,11 +23,22 @@ You can start the demo with the following command:
 
 ```bash
 npm install
-npm run dev
+npm run serve
 ```
 
 If you only want to generate the website, use `npm run build`.
 The output will be in the `dist/` folder.
+
+> [!NOTE]
+> There is no `npm run dev` do to the inability of Vite to serve WASM files in dev mode.
+> Any workaround would be greatly appreciated!
+
+## 🧪 Usage
+
+A demo should be available at <https://hugofara.github.io/peekr/>.
+
+Start by loading the model ("Init Eye Tracking").
+Then, either adjust the calibration values by yourself, or use the "Assisted Calibration" utility.
 
 ## 🧠 Available Functions
 
@@ -64,7 +68,6 @@ Stops webcam and gaze processing.
 | `index.js`    | Main entry module               |
 | `worker.js`   | Off-main-thread gaze processing |
 | `peekr.onnx`  | Gaze detection model            |
-| `.wasm` files | ONNX Runtime Web WASM backend   |
 
 ---
 
@@ -81,17 +84,6 @@ Then:
 ```js
 import * as Peekr from 'peekr';
 ```
-
-## 📦 Publishing
-
-To build and publish:
-
-```bash
-npm run build
-npm publish --access public
-```
-
-Make sure your `dist/` includes the model, worker, and all necessary WASM files.
 
 ## 🧠 Credits
 
