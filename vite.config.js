@@ -17,5 +17,8 @@ export default defineConfig({
         topLevelAwait()
       ]
     }
-  }
+  },
+  optimizeDeps: {
+    exclude: ["onnxruntime-web"],
+  },
 });

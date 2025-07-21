@@ -2,9 +2,10 @@
 
 You can contribute to Peekr in various ways.
 
-The main issue currently is the lack of `npm run dev`.
-This is due to Vite unable to serve WASM files in dev mode.
-You can submit pull request if you have any solution.
+## New version
+
+Bump the version number in `package.json`.
+Then, commit and add a new tag with the version.
 
 ## 📦 Publishing
 

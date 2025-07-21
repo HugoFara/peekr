@@ -23,15 +23,11 @@ You can start the demo with the following command:
 
 ```bash
 npm install
-npm run serve
+npm run dev
 ```
 
 If you only want to generate the website, use `npm run build`.
 The output will be in the `dist/` folder.
-
-> [!NOTE]
-> There is no `npm run dev` do to the inability of Vite to serve WASM files in dev mode.
-> Any workaround would be greatly appreciated!
 
 ## 🧪 Usage
 
