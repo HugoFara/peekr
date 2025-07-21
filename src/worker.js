@@ -6,7 +6,7 @@ async function loadModel() {
   if (onnxSession) return;
   
   onnxSession = await InferenceSession.create(
-    "/peekr.onnx",
+    "./peekr.onnx",
     {
       executionProviders: ["wasm"],
       graphOptimizationLevel: "all",
