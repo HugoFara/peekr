@@ -21,7 +21,7 @@ export function createWorker(onGazeCallback, onModelReady = null) {
   if (eyeTrackingWorker) return eyeTrackingWorker;
 
   eyeTrackingWorker = new Worker(
-    new URL('./worker.js', import.meta.url),
+    new URL("./worker.js", import.meta.url),
     { type: "module" }
   );
 

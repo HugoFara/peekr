@@ -17,22 +17,24 @@ These results were obtained from 30 randomly selected participants using their o
 
 ## 🧪 Demo (with Calibration Panel)
 
-I have attached a `public/index.html` demo file. To run this demo, follow these steps:
+A demo should be available at <https://hugofara.github.io/peekr/>.
 
-1. First, build the project by running the following command:
+Start by loading the model ("Init Eye Tracking").
+Then, either adjust the calibration values by yourself, or use the "Assisted Calibration" utility.
 
-   ```bash
-   npm install
-   npm run build
-   ```
+## Build
 
-2. Then, run the demo using npm with the following command:
+You can rebuild the package with [Node](https://nodejs.org/en/download) and Vite.
 
-   ```bash
-   npm run serve
-   ```
+You can start the demo with the following command:
 
-3. Start by loading the model ("Init Eye Tracking"). Then, either adjust the calibration values by yourself, or use the "Assisted Calibration" utility.
+```bash
+npm install
+npm run dev
+```
+
+If you only want to generate the website, use `npm run build`.
+The output will be in the `dist/` folder.
 
 ## 🧠 Available Functions
 
@@ -67,6 +69,8 @@ Stops webcam and gaze processing.
 ---
 
 ## 🚀 Load via npm
+
+From the official version of peekr.
 
 ```bash
 npm install peekr
