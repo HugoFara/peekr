@@ -6,6 +6,7 @@
     "scripts": {
         "serve": "vite build && vite preview",
         "build": "vite build",
+        "build-gh": "vite build --base=./",
         "preview": "vite preview",
         "lint": "npx eslint --fix"
     },
