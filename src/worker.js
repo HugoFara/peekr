@@ -22,15 +22,15 @@ loadModel().catch((err) => {
 });
 
 async function runInference(input1, input2, kps) {
-    const inputTensor1 = new Tensor("float32", input1.data, [1, 3, 128, 128]);
-    const inputTensor2 = new Tensor("float32", input2.data, [1, 3, 128, 128]);
-    const kpsTensor = new Tensor("float32", kps.data, [1, 8]);
+  const inputTensor1 = new Tensor("float32", input1.data, [1, 3, 128, 128]);
+  const inputTensor2 = new Tensor("float32", input2.data, [1, 3, 128, 128]);
+  const kpsTensor = new Tensor("float32", kps.data, [1, 8]);
 
-    return onnxSession.run({ 
-      input1: inputTensor1,
-      input2: inputTensor2,
-      kps: kpsTensor
-    });
+  return onnxSession.run({ 
+    input1: inputTensor1,
+    input2: inputTensor2,
+    kps: kpsTensor
+  });
 }
 
 onmessage = async function (e) {

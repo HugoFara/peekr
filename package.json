@@ -44,6 +44,7 @@
         "@rollup/plugin-terser": "^0.4.3",
         "@rollup/plugin-url": "^8.0.2",
         "@rollup/plugin-wasm": "^6.2.2",
+        "@stylistic/eslint-plugin": "^5.2.0",
         "@surma/rollup-plugin-off-main-thread": "^2.2.3",
         "eslint": "^9.31.0",
         "globals": "^16.3.0",

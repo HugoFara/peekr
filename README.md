@@ -94,6 +94,7 @@ Make sure your `dist/` includes the model, worker, and all necessary WASM files.
 Built by **Aryaman Taore** at [Dakin Lab](https://www.dakinlab.org) and [Stanford Brain Development & Education Lab](https://edneuro.stanford.edu).
 
 The web part received major changes from [Hugo Fara](https://hugofara.net).
+It includes a new calibration set up and a Kalman filtering of the output.
 
 ## 🗪 License
 
