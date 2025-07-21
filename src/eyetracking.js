@@ -1,5 +1,6 @@
 import ndarray from "ndarray";
 import ops from "ndarray-ops";
+import EyeTrackingWorker from './worker.js?worker'
 
 let rafId;
 let continueProcessing = false;
@@ -20,10 +21,7 @@ const rightEyectx = rightEyeCanvas.getContext("2d",{ willReadFrequently: true })
 export function createWorker(onGazeCallback, onModelReady = null) {
   if (eyeTrackingWorker) return eyeTrackingWorker;
 
-  eyeTrackingWorker = new Worker(
-    new URL("./worker.js", import.meta.url),
-    { type: "module" }
-  );
+  eyeTrackingWorker = new EyeTrackingWorker();
 
   eyeTrackingWorker.onmessage = (e) => {
     const { type, error, ...data } = e.data;
