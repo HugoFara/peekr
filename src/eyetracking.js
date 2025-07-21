@@ -163,16 +163,16 @@ function onResultsFaceMesh(results) {
     );
 
     const imageDataL = leftEyectx.getImageData(0, 0, 128, 128);
-    let input1 = preprocess(imageDataL.data, 128, 128);
+    let leftEye = preprocess(imageDataL.data, 128, 128);
 
     const imageDataR = rightEyectx.getImageData(0, 0, 128, 128);
-    let input2 = preprocess(imageDataR.data, 128, 128);
+    let rightEye = preprocess(imageDataR.data, 128, 128);
 
     let kpsTensor = preprocess_kps(kps);
 
     eyeTrackingWorker.postMessage({
-      input1: { data: input1 },
-      input2: { data: input2 },
+      input1: { data: leftEye },
+      input2: { data: rightEye },
       kpsTensor: { data: kpsTensor },
     });
   }

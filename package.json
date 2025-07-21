@@ -32,6 +32,7 @@
     "author": "Aryaman Taore",
     "license": "MIT",
     "dependencies": {
+        "kalmanjs": "^1.1.0",
         "ndarray": "^1.0.19",
         "ndarray-ops": "^1.2.2",
         "onnxruntime-web": "1.22.0"

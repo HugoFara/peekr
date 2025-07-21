@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - If the dot goes outside of screen, display in blue.
 - Adds a favicon.ico.
 - Adds an automated build & deployement to GitHub pages.
+- Adds two 1-D Kalman filters to improve stability.
 
 ### Changed
 

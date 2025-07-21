@@ -52,6 +52,7 @@
   <button id="startBtn" onclick="Peekr.runEyeTracking()" disabled>Run Eye Tracking</button>
   <button id="stopBtn" onclick="Peekr.stopEyeTracking()" disabled>Stop Eye Tracking</button>
   <button id="calibBtn" onclick="startAssistedCalibration()" disabled>Assisted Calibration</button>
+  <input type="checkbox" id="filtering" name="filtering" checked /><label for="filtering">Apply Kalman Filtering.</label>
   
 
   <div class="control-panel">
@@ -104,6 +105,13 @@
         if (calibrationStep < calibrationCorners.length) {
           // Only record after a short delay to let user focus
           if (!calibrationDotReady) return;
+          const gazePos = {
+            rawX: gaze.output.cpuData[0],
+            rawY: gaze.output.cpuData[1]
+          };
+          if (document.getElementById("filtering").checked) {
+            [ gazePos.rawX, gazePos.rawY ] = Peekr.applyFilter(gazePos.rawX, gazePos.rawY)
+          }
           calibrationGazeData.push({
             rawX: gaze.output.cpuData[0],
             rawY: gaze.output.cpuData[1]
@@ -143,6 +151,7 @@
 
     function finishAssistedCalibration() {
       calibrationDot.style.display = 'none';
+      calibrationGazeListener = (gaze) => {};
       calibrationInProgress = false;
       // Compute calibration coefficients
       // Corners: [TL, TR, BR, BL]
@@ -167,7 +176,6 @@
       document.getElementById("yCoefInput").value = c.toFixed(2);
       document.getElementById("yInterceptInput").value = (d * 100).toFixed(0);
       document.getElementById("log").textContent += `\n✅ Assisted calibration complete. Coefficients set.`;
-      calibrationGazeListener = (gaze) => {};
     }
 
 
@@ -202,7 +210,21 @@
 
           const x_coef = -x_coef_ui; // flip x coef internally
 
-          let [ xpred, ypred ] = moveCalibratedDot(rawX, rawY, x_coef, x_intercept / 100, y_coef, y_intercept / 100);
+          let filteredX, filteredY;
+
+          if (document.getElementById("filtering").checked)
+            [ filteredX, filteredY ] = Peekr.applyFilter(rawX, rawY);
+          else
+            [ filteredX, filteredY ] = [ rawX, rawY ];
+
+          let [ xpred, ypred ] = moveCalibratedDot(
+            filteredX,
+            filteredY,
+            x_coef,
+            x_intercept / 100,
+            y_coef,
+            y_intercept / 100
+          );
 
           // Clamp to screen borders and change color if out of bounds
           let clamped = false;

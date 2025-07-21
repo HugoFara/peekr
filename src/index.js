@@ -1,6 +1,15 @@
+import KalmanFilter from 'kalmanjs';
 import { setupFaceMesh, startInference, stopInference } from "./eyetracking.js";
 
 let isInitialized = false;
+const kalmanFilters = {
+  x: new KalmanFilter(),
+  y: new KalmanFilter()
+};
+
+export function applyFilter(x, y) {
+  return [ kalmanFilters.x.filter(x), kalmanFilters.y.filter(y) ];
+}
 
 export function initEyeTracking(
   {
@@ -37,11 +46,14 @@ export function initEyeTracking(
     }
   }).then((stream) => {
     video.srcObject = stream;
-    setupFaceMesh(video, () => {
-      isInitialized = true;
-      console.log("initialised, ready to run eyetracking")
-      if (onReady) onReady();
-    }, onGaze); // 👈 forward to setupFaceMesh
+    setupFaceMesh(video,
+      () => {
+        isInitialized = true;
+        console.log("initialised, ready to run eyetracking")
+        if (onReady) onReady();
+      },
+      onGaze
+    ); // 👈 forward to setupFaceMesh
   });
 }
 
