@@ -38,3 +38,22 @@ button {
     display: block;
     margin: 5px 0;
 }
+
+.title-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.title-container h1 {
+    margin: 0;
+}
+
+.version-info {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+    font-style: italic;
+    margin-left: 10px;
+}

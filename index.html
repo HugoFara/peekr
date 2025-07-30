@@ -9,7 +9,10 @@
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
-  <h1>👁️ Peekr Eye Tracking Demo</h1>
+  <div class="title-container">
+    <h1>👁️ Peekr Eye Tracking Demo</h1>
+    <p class="version-info">v1.1.0</p>
+  </div>
 
   <button id="PeekrInitBtn">
     Init Eye Tracking
@@ -40,7 +43,6 @@
 
   <script type="module">
     import * as Peekr from '/src/index.js';
-    window.Peekr = Peekr;
     Peekr.applyAutoBindings();
   </script>
 </body>

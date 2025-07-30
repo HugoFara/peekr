@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED]
+## [1.1.0] - 2025-07-30
 
 ### Added
 
@@ -16,9 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adds a favicon.ico.
 - Adds an automated build & deployement to GitHub pages.
 - Adds two 1-D Kalman filters to improve stability.
+- Adds version number to the top page.
 
 ### Changed
 
+- The UI code is now part of the module.
 - Switch from Rollup to Vite.
 - Total rewrite of the Rollup configuration.
 - Updated deprecated code and packages.
