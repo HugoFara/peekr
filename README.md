@@ -3,6 +3,8 @@
 **Peekr** is a lightweight, browser-compatible webcam eye tracking module.
 It runs entirely in the browser — no installation, no data sent to a server.
 
+![Peekr Welcome Screen](./image/Peekr%20Banner.png)
+
 > [!TIP]
 > You can test it on [GitHub Pages](https://hugofara.github.io/peekr/).
 
@@ -15,16 +17,12 @@ Then go the folder with:
 ```sh
 git clone https://github.com/HugoFara/peekr.git
 cd peekr
-```
-
-Then, everything is built with [Vite](https://vite.dev).
-You can start the demo with the following command:
-
-```bash
 npm install
+# Build with Vite
 npm run dev
 ```
 
+Under the hood, we are using [Vite](https://vite.dev).
 If you only want to generate the website, use `npm run build`.
 The output will be in the `dist/` folder.
 

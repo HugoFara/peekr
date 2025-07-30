@@ -5,20 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- The tracking dot is now green when in-screen, red when out screen.
+
 ## [1.1.0] - 2025-07-30
 
-### Added
+### Added in 1.1.0
 
 - Assisted calibration to set calibration parameters easily.
 - Cleaner [README.md](./README.md) to build the app.
 - Changed rollup configuration to run the app in one command.
 - If the dot goes outside of screen, display in blue.
 - Adds a favicon.ico.
-- Adds an automated build & deployement to GitHub pages.
+- Adds an automated build & deployment to GitHub pages.
 - Adds two 1-D Kalman filters to improve stability.
 - Adds version number to the top page.
 
-### Changed
+### Changed in 1.1.0
 
 - The UI code is now part of the module.
 - Switch from Rollup to Vite.
@@ -26,15 +32,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated deprecated code and packages.
 - Updated node modules.
 
-### Fixed
+### Fixed in 1.1.0
 
 - All gitignored files were removed from the cache.
 - Code clean-up and linting.
 - `npm run dev` was unavailable (see [HugoFara/peekr#1](https://github.com/HugoFara/peekr/issues/1)).
 
-### Removed
+### Removed in 1.1.0
 
-- Many unnessary dev dependencies.
+- Many unnecessary dev dependencies.
 
 ## [1.0.5] - 2025-07-18
 

@@ -194,7 +194,7 @@ export function startEyeTrackingWithCallbacks() {
 
       dot.style.left = `${xpred}px`;
       dot.style.top = `${ypred}px`;
-      dot.style.background = clamped ? 'blue' : 'red';
+      dot.style.background = clamped ? 'red' : 'green';
     }
   });
 }
