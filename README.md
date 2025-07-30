@@ -1,24 +1,23 @@
 # 👁️ Peekr: Browser-based Eye Tracking
 
-**Peekr** is a lightweight, browser-compatible webcam eye tracking module. It runs entirely in the browser — no installation, no data sent to a server.
+**Peekr** is a lightweight, browser-compatible webcam eye tracking module.
+It runs entirely in the browser — no installation, no data sent to a server.
 
 > [!TIP]
 > You can test it on [GitHub Pages](https://hugofara.github.io/peekr/).
 
-## 🎓 Background
-
-Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine learning engineer. The project emerged during Aryaman's PhD at the University of Auckland and continued through his postdoctoral research at **Stanford University**. Peekr's underlying ML model was trained on **268,000+ image frames** from **264 participants** recruited via Prolific. Each participant used their own personal setup.
-
-**Accuracy** (after calibration):
-
-* Mean horizontal error: **1.53 cm** (~1.75° visual angle)
-* Mean vertical error: **2.20 cm** (~2.52° visual angle)
-These results were obtained from 30 randomly selected participants using their own setups, with no supervision. Each participant followed a stimulus on screen after completing a simple 5-dot calibration. The calibration consisted of four dots in the corners and one in the center of the screen. After this, a linear fit was applied separately to the x and y axes to adjust the gaze predictions.
-
 ## Install
 
-You can rebuild the package with [Node](https://nodejs.org/en/download) and Vite.
+You need to get [Node](https://nodejs.org/en/download) first.
 
+Then go the folder with:
+
+```sh
+git clone https://github.com/HugoFara/peekr.git
+cd peekr
+```
+
+Then, everything is built with [Vite](https://vite.dev).
 You can start the demo with the following command:
 
 ```bash
@@ -87,6 +86,24 @@ Built by **Aryaman Taore** at [Dakin Lab](https://www.dakinlab.org) and [Stanfor
 
 The web part received major changes from [Hugo Fara](https://hugofara.net).
 It includes a new calibration set up and a Kalman filtering of the output.
+
+## 🎓 Background
+
+Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine learning engineer.
+The project emerged during Aryaman's PhD at the University of Auckland and continued through his postdoctoral research at **Stanford University**.
+Peekr's underlying ML model was trained on **268,000+ image frames** from **264 participants** recruited via [Prolific](https://www.prolific.com/).
+Each participant used their own personal setup.
+
+## Performances
+
+**Accuracy** (after calibration):
+
+* Mean horizontal error: **1.53 cm** (~1.75° visual angle)
+* Mean vertical error: **2.20 cm** (~2.52° visual angle)
+These results were obtained from 30 randomly selected participants using their own setups, with no supervision.
+Each participant followed a stimulus on screen after completing a simple 5-dot calibration.
+The calibration consisted of four dots in the corners and one in the center of the screen.
+After this, a linear fit was applied separately to the x and y axes to adjust the gaze predictions.
 
 ## 🗪 License
 
