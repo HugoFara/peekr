@@ -1,3 +1,6 @@
+/*
+ * Worker for running the ONNX gaze model off the main thread
+ */
 import { Tensor, InferenceSession } from "onnxruntime-web";
 
 let onnxSession = null;

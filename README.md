@@ -35,7 +35,30 @@ A demo should be available at <https://hugofara.github.io/peekr/>.
 Start by loading the model ("Init Eye Tracking").
 Then, either adjust the calibration values by yourself, or use the "Assisted Calibration" utility.
 
-## 🧠 Available Functions
+## 🧠 Structure
+
+You will find the following JS files:
+
+```text
+peekr/
+├── src/
+│   ├── index.js        # Main entry point; handles UI bindings, calibration, and tracking logic
+│   ├── core.js         # Core logic for initializing, running, and stopping eye tracking; filtering
+│   ├── eyetracking.js  # Handles video input, face mesh, and communication with the worker
+│   ├── worker.js       # Web worker for running the ONNX gaze model off the main thread
+│   └── style.css       # Demo page styles
+├── public/
+│   └── peekr.onnx      # Pretrained ONNX model for gaze estimation
+├── index.html          # Demo web page with controls and UI
+├── package.json        # Project metadata and dependencies
+└── README.md           # Documentation and usage instructions
+```
+
+### `Peekr.applyAutoBindings({ buttons, inputs, log, gazeDot, calibrationDot })`
+
+Bridges between a standard HTML page and Peekr interactions.
+
+It receives arrays of HTML elements as an input.
 
 ### `Peekr.initEyeTracking({ onReady, onGaze })`
 
@@ -56,17 +79,11 @@ Starts real-time gaze prediction.
 
 Stops webcam and gaze processing.
 
-## 📁 Files Included
-
-| File          | Purpose                         |
-| ------------- | ------------------------------- |
-| `index.js`    | Main entry module               |
-| `worker.js`   | Off-main-thread gaze processing |
-| `peekr.onnx`  | Gaze detection model            |
-
----
-
 ## 🚀 Load via npm
+
+> [!IMPORTANT]
+> I (Hugo) an responsible for the changes on this fork.
+> Loading from NPM will download the version from Aryaman, which may differ significantly.
 
 From the official version of peekr.
 

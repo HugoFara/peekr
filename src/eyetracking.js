@@ -1,3 +1,6 @@
+/*
+ * Handles video input, face mesh, and communication with the worker
+ */
 import ndarray from "ndarray";
 import ops from "ndarray-ops";
 

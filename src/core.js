@@ -1,3 +1,6 @@
+/*
+ * Core logic for initializing, running, and stopping eye tracking; filtering
+ */
 import KalmanFilter from 'kalmanjs';
 import { setupFaceMesh, startInference, stopInference } from "./eyetracking.js";
 
