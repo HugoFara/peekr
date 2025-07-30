@@ -1,12 +1,14 @@
 # 👁️ Peekr: Browser-based Eye Tracking
 
+![Peekr Welcome Screen](./image/Peekr%20Banner.png)
+
 **Peekr** is a lightweight, browser-compatible webcam eye tracking module.
 It runs entirely in the browser — no installation, no data sent to a server.
 
-![Peekr Welcome Screen](./image/Peekr%20Banner.png)
-
 > [!TIP]
 > You can test it on [GitHub Pages](https://hugofara.github.io/peekr/).
+
+[Peekr 1.1.0 demo.webm](https://github.com/user-attachments/assets/4f9a84af-a20f-44a2-82b9-3776c876342e)
 
 ## Install
 
