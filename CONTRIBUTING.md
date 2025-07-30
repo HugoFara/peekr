@@ -4,7 +4,7 @@ You can contribute to Peekr in various ways.
 
 ## New version
 
-Bump the version number in `package.json`.
+Bump the version number in `package.json`, as well as in `index.html`.
 Then, commit and add a new tag with the version.
 
 ## 📦 Publishing
