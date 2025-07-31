@@ -7,6 +7,12 @@ import { runEyeTracking, applyFilter, initEyeTracking, stopEyeTracking } from ".
 const MODEL_DIST_X = -270;
 const MODEL_DIST_Y = 350;
 
+/**
+ * Calculate the coefficients for the linear model based on the distance to screen.
+ * 
+ * @param {number} distToScreen - The distance to the screen in cm.
+ * @returns {Object} An object containing the coefficients for the linear model.
+ */
 export function calculateCoefficients(distToScreen) {
   const coef_x = MODEL_DIST_X / distToScreen;
   const coef_y = MODEL_DIST_Y / distToScreen;
@@ -93,34 +99,38 @@ const domElements = {
 };
 
 // Assisted Calibration Logic
-let calibrationInProgress = false;
-let calibrationStep = 0;
-let calibrationGazeData = [];
-let calibrationDotReady = false;
-const calibrationCorners = [
-  { x: 0.1, y: 0.1 }, // top-left
-  { x: 0.9, y: 0.1 }, // top-right
-  { x: 0.9, y: 0.9 }, // bottom-right
-  { x: 0.1, y: 0.9 }  // bottom-left
-];
-let calibrationGazeListener = () => {};
+const calibrationLogic = {
+  calibrationInProgress: false,
+  calibrationStep: 0,
+  calibrationGazeData: [],
+  calibrationDotReady: false,
+  calibrationCorners: [
+    { x: 0.1, y: 0.1 }, // top-left
+    { x: 0.9, y: 0.1 }, // top-right
+    { x: 0.9, y: 0.9 }, // bottom-right
+    { x: 0.1, y: 0.9 }  // bottom-left
+  ],
+  calibrationGazeListener: () => {}
+};
+
+
 
 export function startAssistedCalibration() {
-  if (calibrationInProgress) return;
+  if (calibrationLogic.calibrationInProgress) return;
 
   runEyeTracking();
 
-  calibrationInProgress = true;
-  calibrationStep = 0;
-  calibrationGazeData = [];
+  calibrationLogic.calibrationInProgress = true;
+  calibrationLogic.calibrationStep = 0;
+  calibrationLogic.calibrationGazeData = [];
   showCalibrationDot();
   document.getElementById("PeekrLog").textContent += "\n🔵 Assisted calibration started. Follow the blue dot.";
   // Temporarily override onGaze
-  calibrationGazeListener = (gaze) => {
+  calibrationLogic.calibrationGazeListener = (gaze) => {
     // Wait a short time at each corner, then record gaze
-    if (calibrationStep < calibrationCorners.length) {
+    if (calibrationLogic.calibrationStep < calibrationLogic.calibrationCorners.length) {
       // Only record after a short delay to let user focus
-      if (!calibrationDotReady) return;
+      if (!calibrationLogic.calibrationDotReady) return;
       const gazePos = {
         rawX: gaze.output.cpuData[0],
         rawY: gaze.output.cpuData[1]
@@ -128,12 +138,12 @@ export function startAssistedCalibration() {
       if (document.getElementById("PeekrFiltering").checked) {
         [ gazePos.rawX, gazePos.rawY ] = applyFilter(gazePos.rawX, gazePos.rawY)
       }
-      calibrationGazeData.push({
+      calibrationLogic.calibrationGazeData.push({
         rawX: gaze.output.cpuData[0],
         rawY: gaze.output.cpuData[1]
       });
-      calibrationStep++;
-      if (calibrationStep < calibrationCorners.length) {
+      calibrationLogic.calibrationStep++;
+      if (calibrationLogic.calibrationStep < calibrationLogic.calibrationCorners.length) {
         showCalibrationDot();
       } else {
         finishAssistedCalibration();
@@ -155,20 +165,20 @@ function showCalibrationDot() {
     domElements.calibrationDot.style.pointerEvents = 'none';
     document.body.appendChild(domElements.calibrationDot);
   }
-  const corner = calibrationCorners[calibrationStep];
+  const corner = calibrationLogic.calibrationCorners[calibrationLogic.calibrationStep];
   domElements.calibrationDot.style.left = `calc(${corner.x * 100}% - 15px)`;
   domElements.calibrationDot.style.top = `calc(${corner.y * 100}% - 15px)`;
   domElements.calibrationDot.style.display = 'block';
-  calibrationDotReady = false;
+  calibrationLogic.calibrationDotReady = false;
   setTimeout(() => {
-    calibrationDotReady = true;
+    calibrationLogic.calibrationDotReady = true;
   }, 1000); // 1s for user to focus
 }
 
 function finishAssistedCalibration() {
   domElements.calibrationDot.style.display = 'none';
-  calibrationGazeListener = () => {};
-  calibrationInProgress = false;
+  calibrationLogic.calibrationGazeListener = () => {};
+  calibrationLogic.calibrationInProgress = false;
   // Compute calibration coefficients
   // Corners: [TL, TR, BR, BL]
   // Screen X: [0, 1, 1, 0], Y: [0, 0, 1, 1]
@@ -176,8 +186,8 @@ function finishAssistedCalibration() {
   // Linear fit: x_screen = a * (rawX - 0.5) + b
   //             y_screen = c * rawY + d
   // Use least squares for a, b, c, d
-  const X = calibrationGazeData.map(d => d.rawX - 0.5);
-  const Y = calibrationGazeData.map(d => d.rawY);
+  const X = calibrationLogic.calibrationGazeData.map(d => d.rawX - 0.5);
+  const Y = calibrationLogic.calibrationGazeData.map(d => d.rawY);
   const x_screen = [0, 1, 1, 0];
   const y_screen = [0, 0, 1, 1];
   // Solve for x: x_screen = a * X + b
@@ -223,8 +233,8 @@ export function startEyeTrackingWithCallbacks() {
       dot.style.display = "block";
     },
     onGaze: (gaze) => {
-      if (calibrationInProgress) {
-        calibrationGazeListener(gaze);
+      if (calibrationLogic.calibrationInProgress) {
+        calibrationLogic.calibrationGazeListener(gaze);
         return;
       }
       const rawX = gaze.output.cpuData[0];  // range ~ [0,1]
