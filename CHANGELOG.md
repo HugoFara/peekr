@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The tracking dot is now green when in-screen, red when out screen.
+- The X and Y coefficients were merged in a "distance to screen" parameter.
 
 ## [1.1.0] - 2025-07-30
 

@@ -3,9 +3,21 @@
  */
 import { runEyeTracking, applyFilter, initEyeTracking, stopEyeTracking } from "./core";
 
-function moveCalibratedDot(rawX, rawY, x_coef, x_intercept, y_coef, y_intercept) {
-  const xpred = (x_coef * (rawX - 0.5) + x_intercept) * screen.width;
-  const ypred = (y_coef * rawY + y_intercept) * screen.height;
+// Model distance constants (in cm)
+const MODEL_DIST_X = -270;
+const MODEL_DIST_Y = 350;
+
+function calculateCoefficients(distToScreen) {
+  const coef_x = MODEL_DIST_X / distToScreen;
+  const coef_y = MODEL_DIST_Y / distToScreen;
+  return { coef_x, coef_y };
+}
+
+function moveCalibratedDot(rawX, rawY, distToScreen, x_intercept, y_intercept) {
+  // Calculate coefficients based on distance
+  const { coef_x, coef_y } = calculateCoefficients(distToScreen);
+  const xpred = (coef_x * (rawX - 0.5) + x_intercept) * screen.width;
+  const ypred = (coef_y * rawY + y_intercept) * screen.height;
 
   return [ xpred, ypred ];
 }
@@ -19,6 +31,7 @@ const domElements = {
     filtering: undefined,
   },
   inputs: {
+    distInput: undefined,
     xCoefInput: undefined,
     xInterceptInput: undefined,
     yCoefInput: undefined,
@@ -123,12 +136,17 @@ function finishAssistedCalibration() {
   // Solve for y: y_screen = c * Y + d
   const c = (y_screen[2] - y_screen[1] + y_screen[3] - y_screen[0]) / (Y[2] - Y[1] + Y[3] - Y[0]);
   const d = y_screen[0] - c * Y[0];
-  // Update UI
-  domElements.inputs.xCoefInput.value = (-a).toFixed(2); // flip sign for internal use
+  // Update UI with calculated intercepts
   domElements.inputs.xInterceptInput.value = (b * 100).toFixed(0);
-  domElements.inputs.yCoefInput.value = c.toFixed(2);
   domElements.inputs.yInterceptInput.value = (d * 100).toFixed(0);
-  domElements.log.textContent += `\n✅ Assisted calibration complete. Coefficients set.`;
+  
+  // Update coefficient display based on current distance
+  const distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
+  const { coef_x, coef_y } = calculateCoefficients(distToScreen);
+  domElements.inputs.xCoefInput.value = coef_x.toFixed(2);
+  domElements.inputs.yCoefInput.value = coef_y.toFixed(2);
+  
+  domElements.log.textContent += `\n✅ Assisted calibration complete. Intercepts set.`;
 }
 
 
@@ -156,12 +174,9 @@ export function startEyeTrackingWithCallbacks() {
       const rawY = gaze.output.cpuData[1];
 
       // Read calibration settings
-      const x_coef_ui = parseFloat(domElements.inputs.xCoefInput.value) || 0;
+      const distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
       const x_intercept = parseFloat(domElements.inputs.xInterceptInput.value) || 0;
-      const y_coef = parseFloat(domElements.inputs.yCoefInput.value) || 0;
       const y_intercept = parseFloat(domElements.inputs.yInterceptInput.value) || 0;
-
-      const x_coef = -x_coef_ui; // flip x coef internally
 
       let filteredX, filteredY;
 
@@ -173,9 +188,8 @@ export function startEyeTrackingWithCallbacks() {
       let [ xpred, ypred ] = moveCalibratedDot(
         filteredX,
         filteredY,
-        x_coef,
+        distToScreen,
         x_intercept / 100,
-        y_coef,
         y_intercept / 100
       );
 
@@ -225,12 +239,14 @@ export const applyAutoBindings = (buttons, inputs, log, gazeDot, calibrationDot)
     domElements.buttons.filtering = document.getElementById("PeekrFiltering");
   }
   if (inputs) {
+    domElements.inputs.distInput = inputs.distInput;
     domElements.inputs.xCoefInput = inputs.xCoefInput;
     domElements.inputs.xInterceptInput = inputs.xInterceptInput;
     domElements.inputs.yCoefInput = inputs.yCoefInput;
     domElements.inputs.yInterceptInput = inputs.yInterceptInput;
   }
   else {
+    domElements.inputs.distInput = document.getElementById("PeekrDistInput");
     domElements.inputs.xCoefInput = document.getElementById("PeekrXCoefInput");
     domElements.inputs.xInterceptInput = document.getElementById("PeekrXInterceptInput");
     domElements.inputs.yCoefInput = document.getElementById("PeekrYCoefInput");
@@ -260,4 +276,15 @@ export const applyAutoBindings = (buttons, inputs, log, gazeDot, calibrationDot)
   domElements.buttons.startBtn.onclick = runEyeTracking;
   domElements.buttons.stopBtn.onclick = stopEyeTracking;
   domElements.buttons.calibBtn.onclick = startAssistedCalibration;
+  
+  // Update coefficient display when distance changes
+  domElements.inputs.distInput.oninput = () => {
+    const distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
+    const { coef_x, coef_y } = calculateCoefficients(distToScreen);
+    domElements.inputs.xCoefInput.value = coef_x.toFixed(2);
+    domElements.inputs.yCoefInput.value = coef_y.toFixed(2);
+  };
+  
+  // Initialize coefficient display
+  domElements.inputs.distInput.dispatchEvent(new Event('input'));
 };

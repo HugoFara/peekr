@@ -31,11 +31,10 @@
   
   <div class="control-panel">
     <h3>🔧 Calibration Controls</h3>
-    <label>X Coefficient: <input type="number" step="0.1" id="PeekrXCoefInput" value="4"></label>
-    <label>X Intercept: <input type="number" step="1" id="PeekrXInterceptInput" value="20"></label>
-    <label>Y Coefficient: <input type="number" step="0.1" id="PeekrYCoefInput" value="10"></label>
-    <label>Y Intercept: <input type="number" step="1" id="PeekrYInterceptInput" value="-50"></label>
-    <p>🛠 Adjust the above values until the red dot tracks your gaze accurately.</p>
+    <label>Distance to Screen (cm): <input type="number" step="1" id="PeekrDistInput" value="40"></label>
+    <label>X Intercept: <input type="number" step="1" id="PeekrXInterceptInput" value="0"></label>
+    <label>Y Intercept: <input type="number" step="1" id="PeekrYInterceptInput" value="30"></label>
+    <p>🛠 Set your distance to screen and adjust intercepts until the green dot tracks your gaze accurately, or use the assisted calibration.</p>
   </div>
 
   <div id="PeekrLog"></div>
