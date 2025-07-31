@@ -83,9 +83,7 @@ const domElements = {
   },
   inputs: {
     distInput: undefined,
-    xCoefInput: undefined,
     xInterceptInput: undefined,
-    yCoefInput: undefined,
     yInterceptInput: undefined,
   },
   log: undefined,
@@ -179,34 +177,99 @@ function finishAssistedCalibration() {
   domElements.calibrationDot.style.display = 'none';
   calibrationLogic.calibrationGazeListener = () => {};
   calibrationLogic.calibrationInProgress = false;
-  // Compute calibration coefficients
-  // Corners: [TL, TR, BR, BL]
-  // Screen X: [0, 1, 1, 0], Y: [0, 0, 1, 1]
-  // Gaze: calibrationGazeData[i].rawX, rawY
-  // Linear fit: x_screen = a * (rawX - 0.5) + b
-  //             y_screen = c * rawY + d
-  // Use least squares for a, b, c, d
-  const X = calibrationLogic.calibrationGazeData.map(d => d.rawX - 0.5);
-  const Y = calibrationLogic.calibrationGazeData.map(d => d.rawY);
-  const x_screen = [0, 1, 1, 0];
-  const y_screen = [0, 0, 1, 1];
-  // Solve for x: x_screen = a * X + b
-  const a = (x_screen[1] - x_screen[0] + x_screen[2] - x_screen[3]) / (X[1] - X[0] + X[2] - X[3]);
-  const b = x_screen[0] - a * X[0];
-  // Solve for y: y_screen = c * Y + d
-  const c = (y_screen[2] - y_screen[1] + y_screen[3] - y_screen[0]) / (Y[2] - Y[1] + Y[3] - Y[0]);
-  const d = y_screen[0] - c * Y[0];
-  // Update UI with calculated intercepts
-  domElements.inputs.xInterceptInput.value = (b * 100).toFixed(0);
-  domElements.inputs.yInterceptInput.value = (d * 100).toFixed(0);
   
-  // Update coefficient display based on current distance
-  const distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
-  const { coef_x, coef_y } = calculateCoefficients(distToScreen);
-  domElements.inputs.xCoefInput.value = coef_x.toFixed(2);
-  domElements.inputs.yCoefInput.value = coef_y.toFixed(2);
+  // Get current distance to screen as initial guess
+  let distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
   
-  domElements.log.textContent += `\n✅ Assisted calibration complete. Intercepts set.`;
+  // Calculate mean gaze values for each corner
+  const meanGazeX = calibrationLogic.calibrationGazeData.map(d => d.rawX);
+  const meanGazeY = calibrationLogic.calibrationGazeData.map(d => d.rawY);
+  
+  // Calculate expected screen positions for each corner
+  const expectedScreenX = [0, 1, 1, 0]; // [TL, TR, BR, BL]
+  const expectedScreenY = [0, 0, 1, 1]; // [TL, TR, BR, BL]
+  
+  // Function to calculate error for given parameters
+  function calculateError(params) {
+    const { distToScreen, xIntercept, yIntercept } = params;
+    const { coef_x, coef_y } = calculateCoefficients(distToScreen);
+    
+    let totalError = 0;
+    
+    for (let i = 0; i < meanGazeX.length; i++) {
+      // Calculate predicted screen positions
+      const predictedX = coef_x * (meanGazeX[i] - 0.5) + xIntercept;
+      const predictedY = coef_y * meanGazeY[i] + yIntercept;
+      
+      // Calculate squared error
+      const errorX = Math.pow(predictedX - expectedScreenX[i], 2);
+      const errorY = Math.pow(predictedY - expectedScreenY[i], 2);
+      
+      totalError += errorX + errorY;
+    }
+    
+    return totalError;
+  }
+  
+  // Simple gradient descent to minimize error
+  const learningRate = 0.1;
+  const iterations = 1000;
+  const tolerance = 1e-6;
+  
+  let currentParams = {
+    distToScreen: distToScreen,
+    xIntercept: 0,
+    yIntercept: 0
+  };
+  
+  let currentError = calculateError(currentParams);
+  
+  for (let iter = 0; iter < iterations; iter++) {
+    const prevError = currentError;
+    
+    // Calculate gradients using finite differences
+    const delta = 0.01;
+    
+    // Gradient for distToScreen
+    const distGradient = (calculateError({
+      ...currentParams,
+      distToScreen: currentParams.distToScreen + delta
+    }) - currentError) / delta;
+    
+    // Gradient for xIntercept
+    const xInterceptGradient = (calculateError({
+      ...currentParams,
+      xIntercept: currentParams.xIntercept + delta
+    }) - currentError) / delta;
+    
+    // Gradient for yIntercept
+    const yInterceptGradient = (calculateError({
+      ...currentParams,
+      yIntercept: currentParams.yIntercept + delta
+    }) - currentError) / delta;
+    
+    // Update parameters
+    currentParams.distToScreen -= learningRate * distGradient;
+    currentParams.xIntercept -= learningRate * xInterceptGradient;
+    currentParams.yIntercept -= learningRate * yInterceptGradient;
+    
+    // Ensure distance is positive
+    currentParams.distToScreen = Math.max(10, currentParams.distToScreen);
+    
+    currentError = calculateError(currentParams);
+    
+    // Check for convergence
+    if (Math.abs(currentError - prevError) < tolerance) {
+      break;
+    }
+  }
+  
+  // Update UI with optimized parameters
+  domElements.inputs.distInput.value = currentParams.distToScreen.toFixed(1);
+  domElements.inputs.xInterceptInput.value = (currentParams.xIntercept * 100).toFixed(0);
+  domElements.inputs.yInterceptInput.value = (currentParams.yIntercept * 100).toFixed(0);
+  
+  domElements.log.textContent += `\n✅ Assisted calibration complete. Optimized distance: ${currentParams.distToScreen.toFixed(1)}cm, intercepts set.`;
 }
 
 
@@ -307,16 +370,12 @@ export const applyAutoBindings = (buttons, inputs, log, gazeDot, calibrationDot)
   }
   if (inputs) {
     domElements.inputs.distInput = inputs.distInput;
-    domElements.inputs.xCoefInput = inputs.xCoefInput;
     domElements.inputs.xInterceptInput = inputs.xInterceptInput;
-    domElements.inputs.yCoefInput = inputs.yCoefInput;
     domElements.inputs.yInterceptInput = inputs.yInterceptInput;
   }
   else {
     domElements.inputs.distInput = document.getElementById("PeekrDistInput");
-    domElements.inputs.xCoefInput = document.getElementById("PeekrXCoefInput");
     domElements.inputs.xInterceptInput = document.getElementById("PeekrXInterceptInput");
-    domElements.inputs.yCoefInput = document.getElementById("PeekrYCoefInput");
     domElements.inputs.yInterceptInput = document.getElementById("PeekrYInterceptInput");
   }
   if (log) {
@@ -344,14 +403,6 @@ export const applyAutoBindings = (buttons, inputs, log, gazeDot, calibrationDot)
   domElements.buttons.stopBtn.onclick = stopEyeTracking;
   domElements.buttons.calibBtn.onclick = startAssistedCalibration;
   
-  // Update coefficient display when distance changes
-  domElements.inputs.distInput.oninput = () => {
-    const distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
-    const { coef_x, coef_y } = calculateCoefficients(distToScreen);
-    domElements.inputs.xCoefInput.value = coef_x.toFixed(2);
-    domElements.inputs.yCoefInput.value = coef_y.toFixed(2);
-  };
-  
-  // Initialize coefficient display
-  domElements.inputs.distInput.dispatchEvent(new Event('input'));
+  // Distance input is now only used for coefficient calculation during calibration
+  // No need to update any display since coefficients are calculated dynamically
 };
