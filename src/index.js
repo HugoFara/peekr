@@ -181,6 +181,9 @@ function finishAssistedCalibration() {
   // Get current distance to screen as initial guess
   let distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
   
+  // Try multiple starting distances to avoid local minima
+  const startingDistances = [distToScreen, 40, 80, 120];
+  
   // Calculate mean gaze values for each corner
   const meanGazeX = calibrationLogic.calibrationGazeData.map(d => d.rawX);
   const meanGazeY = calibrationLogic.calibrationGazeData.map(d => d.rawY);
@@ -211,65 +214,106 @@ function finishAssistedCalibration() {
     return totalError;
   }
   
-  // Simple gradient descent to minimize error
-  const learningRate = 0.1;
-  const iterations = 1000;
-  const tolerance = 1e-6;
+  // Multi-start optimization to avoid local minima
+  let globalBestParams = null;
+  let globalBestError = Infinity;
   
-  let currentParams = {
-    distToScreen: distToScreen,
-    xIntercept: 0,
-    yIntercept: 0
-  };
-  
-  let currentError = calculateError(currentParams);
-  
-  for (let iter = 0; iter < iterations; iter++) {
-    const prevError = currentError;
+  for (const startDist of startingDistances) {
+    // Improved gradient descent with adaptive learning rates
+    const iterations = 1000;
+    const tolerance = 1e-8;
     
-    // Calculate gradients using finite differences
-    const delta = 0.01;
+    let currentParams = {
+      distToScreen: startDist,
+      xIntercept: 0,
+      yIntercept: 0
+    };
     
-    // Gradient for distToScreen
-    const distGradient = (calculateError({
-      ...currentParams,
-      distToScreen: currentParams.distToScreen + delta
-    }) - currentError) / delta;
+    let currentError = calculateError(currentParams);
+    let bestParams = { ...currentParams };
+    let bestError = currentError;
     
-    // Gradient for xIntercept
-    const xInterceptGradient = (calculateError({
-      ...currentParams,
-      xIntercept: currentParams.xIntercept + delta
-    }) - currentError) / delta;
+    // Adaptive learning rates for different parameters
+    const distLearningRate = 0.5;  // Larger for distance
+    const interceptLearningRate = 0.1;  // Smaller for intercepts
     
-    // Gradient for yIntercept
-    const yInterceptGradient = (calculateError({
-      ...currentParams,
-      yIntercept: currentParams.yIntercept + delta
-    }) - currentError) / delta;
+    for (let iter = 0; iter < iterations; iter++) {
+      const prevError = currentError;
+      
+      // Calculate gradients using finite differences
+      const distDelta = 1.0;  // Larger delta for distance
+      const interceptDelta = 0.01;  // Smaller delta for intercepts
+      
+      // Gradient for distToScreen
+      const distGradient = (calculateError({
+        ...currentParams,
+        distToScreen: currentParams.distToScreen + distDelta
+      }) - currentError) / distDelta;
+      
+      // Gradient for xIntercept
+      const xInterceptGradient = (calculateError({
+        ...currentParams,
+        xIntercept: currentParams.xIntercept + interceptDelta
+      }) - currentError) / interceptDelta;
+      
+      // Gradient for yIntercept
+      const yInterceptGradient = (calculateError({
+        ...currentParams,
+        yIntercept: currentParams.yIntercept + interceptDelta
+      }) - currentError) / interceptDelta;
+      
+      // Update parameters with different learning rates
+      const newDistToScreen = currentParams.distToScreen - distLearningRate * distGradient;
+      const newXIntercept = currentParams.xIntercept - interceptLearningRate * xInterceptGradient;
+      const newYIntercept = currentParams.yIntercept - interceptLearningRate * yInterceptGradient;
+      
+      // Ensure distance is within reasonable bounds
+      currentParams.distToScreen = Math.max(20, Math.min(200, newDistToScreen));
+      currentParams.xIntercept = newXIntercept;
+      currentParams.yIntercept = newYIntercept;
+      
+      currentError = calculateError(currentParams);
+      
+      // Keep track of best parameters
+      if (currentError < bestError) {
+        bestError = currentError;
+        bestParams = { ...currentParams };
+      }
+      
+      // Check for convergence
+      if (Math.abs(currentError - prevError) < tolerance) {
+        break;
+      }
+      
+      // Early stopping if error is very small
+      if (currentError < 1e-6) {
+        break;
+      }
+    }
     
-    // Update parameters
-    currentParams.distToScreen -= learningRate * distGradient;
-    currentParams.xIntercept -= learningRate * xInterceptGradient;
-    currentParams.yIntercept -= learningRate * yInterceptGradient;
-    
-    // Ensure distance is positive
-    currentParams.distToScreen = Math.max(10, currentParams.distToScreen);
-    
-    currentError = calculateError(currentParams);
-    
-    // Check for convergence
-    if (Math.abs(currentError - prevError) < tolerance) {
-      break;
+    // Update global best if this run was better
+    if (bestError < globalBestError) {
+      globalBestError = bestError;
+      globalBestParams = { ...bestParams };
     }
   }
+  
+  // Use the globally best parameters found
+  const currentParams = globalBestParams;
   
   // Update UI with optimized parameters
   domElements.inputs.distInput.value = currentParams.distToScreen.toFixed(1);
   domElements.inputs.xInterceptInput.value = (currentParams.xIntercept * 100).toFixed(0);
   domElements.inputs.yInterceptInput.value = (currentParams.yIntercept * 100).toFixed(0);
   
-  domElements.log.textContent += `\n✅ Assisted calibration complete. Optimized distance: ${currentParams.distToScreen.toFixed(1)}cm, intercepts set.`;
+  // Calculate final error for debugging
+  const finalError = calculateError(currentParams);
+  const initialError = calculateError({ distToScreen: distToScreen, xIntercept: 0, yIntercept: 0 });
+  
+  domElements.log.textContent += `\n✅ Assisted calibration complete.`;
+  domElements.log.textContent += `\n📊 Initial error: ${initialError.toFixed(6)}, Final error: ${finalError.toFixed(6)}`;
+  domElements.log.textContent += `\n📏 Optimized distance: ${currentParams.distToScreen.toFixed(1)}cm`;
+  domElements.log.textContent += `\n📍 X intercept: ${(currentParams.xIntercept * 100).toFixed(0)}, Y intercept: ${(currentParams.yIntercept * 100).toFixed(0)}`;
 }
 
 
