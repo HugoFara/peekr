@@ -16,30 +16,17 @@ export function applyFilter(x, y) {
 
 export function initEyeTracking(
   {
-    containerId = null,
     video = null,
     canvas = null,
-    hide = true,
+    leftEyeCanvas = null,
+    rightEyeCanvas = null,
     onReady = null, // optional callback
     onGaze = null, // 👈 add this
   } = {}
 ) {
-  const container = containerId ? document.getElementById(containerId) : document.body;
-
-  if (!video) {
-    video = document.createElement("video");
-    video.className = "inputVideo";
-    video.autoplay = true;
-    video.playsInline = true;
-    if (hide) video.style.display = "none";
-    container.appendChild(video);
-  }
-
-  if (!canvas) {
-    canvas = document.createElement("canvas");
-    canvas.id = "headCanvas";
-    if (hide) canvas.style.display = "none";
-    container.appendChild(canvas);
+  if (!video || !canvas) {
+    console.error("Video and canvas elements must be provided");
+    return;
   }
   
   console.log("initialising ...")
@@ -55,7 +42,9 @@ export function initEyeTracking(
         console.log("initialised, ready to run eyetracking")
         if (onReady) onReady();
       },
-      onGaze
+      onGaze,
+      leftEyeCanvas,
+      rightEyeCanvas
     ); // 👈 forward to setupFaceMesh
   });
 }

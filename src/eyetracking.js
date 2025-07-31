@@ -9,16 +9,10 @@ let continueProcessing = false;
 let eyeTrackingWorker = null;  // ✅ Track current worker instance
 let inputVideo;
 let faceMesh;
-
-const leftEyeCanvas = document.createElement("canvas");
-leftEyeCanvas.width = 128;
-leftEyeCanvas.height = 128;
-const leftEyectx = leftEyeCanvas.getContext("2d",{ willReadFrequently: true })
-
-const rightEyeCanvas = document.createElement("canvas");
-rightEyeCanvas.width = 128;
-rightEyeCanvas.height = 128;
-const rightEyectx = rightEyeCanvas.getContext("2d",{ willReadFrequently: true });
+let leftEyeCanvas;
+let rightEyeCanvas;
+let leftEyectx;
+let rightEyectx;
 
 export function createWorker(onGazeCallback, onModelReady = null) {
   if (eyeTrackingWorker) return eyeTrackingWorker;
@@ -55,8 +49,17 @@ export function createWorker(onGazeCallback, onModelReady = null) {
   return eyeTrackingWorker;
 }
 
-export function setupFaceMesh(video, onReady,onGaze ) {
+export function setupFaceMesh(video, onReady, onGaze, leftCanvas = null, rightCanvas = null) {
   inputVideo = video;
+  
+  // Initialize canvas elements if provided
+  if (leftCanvas && rightCanvas) {
+    leftEyeCanvas = leftCanvas;
+    rightEyeCanvas = rightCanvas;
+    leftEyectx = leftEyeCanvas.getContext("2d", { willReadFrequently: true });
+    rightEyectx = rightEyeCanvas.getContext("2d", { willReadFrequently: true });
+  }
+  
   eyeTrackingWorker = createWorker(onGaze, () => {
     console.log("👁️ Model loaded inside worker, calling onReady");
     if (onReady) onReady();

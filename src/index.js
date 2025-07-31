@@ -7,19 +7,64 @@ import { runEyeTracking, applyFilter, initEyeTracking, stopEyeTracking } from ".
 const MODEL_DIST_X = -270;
 const MODEL_DIST_Y = 350;
 
-function calculateCoefficients(distToScreen) {
+export function calculateCoefficients(distToScreen) {
   const coef_x = MODEL_DIST_X / distToScreen;
   const coef_y = MODEL_DIST_Y / distToScreen;
   return { coef_x, coef_y };
 }
 
-function moveCalibratedDot(rawX, rawY, distToScreen, x_intercept, y_intercept) {
+export function moveCalibratedDot(rawX, rawY, distToScreen, x_intercept, y_intercept) {
   // Calculate coefficients based on distance
   const { coef_x, coef_y } = calculateCoefficients(distToScreen);
   const xpred = (coef_x * (rawX - 0.5) + x_intercept) * screen.width;
   const ypred = (coef_y * rawY + y_intercept) * screen.height;
 
   return [ xpred, ypred ];
+}
+
+function createEyeTrackingElements() {
+  // Create video element
+  if (!domElements.video) {
+    domElements.video = document.createElement("video");
+    domElements.video.className = "inputVideo";
+    domElements.video.autoplay = true;
+    domElements.video.playsInline = true;
+    domElements.video.style.display = "none";
+    document.body.appendChild(domElements.video);
+  }
+
+  // Create canvas element
+  if (!domElements.canvas) {
+    domElements.canvas = document.createElement("canvas");
+    domElements.canvas.id = "headCanvas";
+    domElements.canvas.style.display = "none";
+    document.body.appendChild(domElements.canvas);
+  }
+
+  // Create left eye canvas
+  if (!domElements.leftEyeCanvas) {
+    domElements.leftEyeCanvas = document.createElement("canvas");
+    domElements.leftEyeCanvas.width = 128;
+    domElements.leftEyeCanvas.height = 128;
+    domElements.leftEyeCanvas.style.display = "none";
+    document.body.appendChild(domElements.leftEyeCanvas);
+  }
+
+  // Create right eye canvas
+  if (!domElements.rightEyeCanvas) {
+    domElements.rightEyeCanvas = document.createElement("canvas");
+    domElements.rightEyeCanvas.width = 128;
+    domElements.rightEyeCanvas.height = 128;
+    domElements.rightEyeCanvas.style.display = "none";
+    document.body.appendChild(domElements.rightEyeCanvas);
+  }
+
+  return {
+    video: domElements.video,
+    canvas: domElements.canvas,
+    leftEyeCanvas: domElements.leftEyeCanvas,
+    rightEyeCanvas: domElements.rightEyeCanvas,
+  };
 }
 
 const domElements = {
@@ -40,6 +85,11 @@ const domElements = {
   log: undefined,
   gazeDot: undefined,
   calibrationDot: undefined,
+  // Eye tracking elements
+  video: undefined,
+  canvas: undefined,
+  leftEyeCanvas: undefined,
+  rightEyeCanvas: undefined,
 };
 
 // Assisted Calibration Logic
@@ -155,7 +205,14 @@ export function startEyeTrackingWithCallbacks() {
   const dot = domElements.gazeDot;
   const logEl = domElements.log;
 
+  // Create eye tracking elements
+  const eyeElements = createEyeTrackingElements();
+
   initEyeTracking({
+    video: eyeElements.video,
+    canvas: eyeElements.canvas,
+    leftEyeCanvas: eyeElements.leftEyeCanvas,
+    rightEyeCanvas: eyeElements.rightEyeCanvas,
     onReady: () => {
       logEl.textContent += "\n✅ Model Loaded. Run Eye Tracking Now.";
       // Enable buttons
