@@ -4,8 +4,8 @@
 import { runEyeTracking, applyFilter, initEyeTracking, stopEyeTracking } from "./core";
 
 // Model distance constants (in cm)
-const MODEL_DIST_X = -270;
-const MODEL_DIST_Y = 350;
+const MODEL_DIST_X = -30;
+const MODEL_DIST_Y = 25;
 
 /**
  * Calculate the coefficients for the linear model based on the distance to screen.
@@ -22,7 +22,7 @@ export function calculateCoefficients(distToScreen) {
 export function moveCalibratedDot(rawX, rawY, distToScreen, x_intercept, y_intercept) {
   // Calculate coefficients based on distance
   const { coef_x, coef_y } = calculateCoefficients(distToScreen);
-  const xpred = (coef_x * (rawX - 0.5) + x_intercept) * screen.width;
+  const xpred = (coef_x * (rawX - 0.5) + x_intercept) * screen.width / 2;
   const ypred = (coef_y * rawY + y_intercept) * screen.height;
 
   return [ xpred, ypred ];
@@ -182,7 +182,7 @@ function finishAssistedCalibration() {
   let distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
   
   // Try multiple starting distances to avoid local minima
-  const startingDistances = [distToScreen, 40, 80, 120];
+  const startingDistances = [distToScreen, 40, 80, 120, 160, 200];
   
   // Calculate mean gaze values for each corner
   const meanGazeX = calibrationLogic.calibrationGazeData.map(d => d.rawX);
@@ -268,7 +268,7 @@ function finishAssistedCalibration() {
       const newYIntercept = currentParams.yIntercept - interceptLearningRate * yInterceptGradient;
       
       // Ensure distance is within reasonable bounds
-      currentParams.distToScreen = Math.max(20, Math.min(200, newDistToScreen));
+      currentParams.distToScreen = Math.max(5, Math.min(200, newDistToScreen));
       currentParams.xIntercept = newXIntercept;
       currentParams.yIntercept = newYIntercept;
       
@@ -303,8 +303,8 @@ function finishAssistedCalibration() {
   
   // Update UI with optimized parameters
   domElements.inputs.distInput.value = currentParams.distToScreen.toFixed(1);
-  domElements.inputs.xInterceptInput.value = (currentParams.xIntercept * 100).toFixed(0);
-  domElements.inputs.yInterceptInput.value = (currentParams.yIntercept * 100).toFixed(0);
+  domElements.inputs.xInterceptInput.value = (currentParams.xIntercept * MODEL_DIST_X).toFixed(0);
+  domElements.inputs.yInterceptInput.value = (currentParams.yIntercept * MODEL_DIST_Y).toFixed(0);
   
   // Calculate final error for debugging
   const finalError = calculateError(currentParams);
@@ -363,8 +363,8 @@ export function startEyeTrackingWithCallbacks() {
         filteredX,
         filteredY,
         distToScreen,
-        x_intercept / 100,
-        y_intercept / 100
+        x_intercept / MODEL_DIST_X,
+        y_intercept / MODEL_DIST_Y
       );
 
       // Clamp to screen borders and change color if out of bounds
