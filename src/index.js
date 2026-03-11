@@ -7,6 +7,64 @@ import { runEyeTracking, applyFilter, initEyeTracking, stopEyeTracking } from ".
 const MODEL_DIST_X = -30;
 const MODEL_DIST_Y = 25;
 
+// ── Gaze recording ──────────────────────────────────────────────────────────
+const gazeRecording = {
+  isRecording: false,
+  startTime: 0,
+  data: [],
+};
+
+function startRecording() {
+  gazeRecording.data = [];
+  gazeRecording.startTime = performance.now();
+  gazeRecording.isRecording = true;
+  if (domElements.buttons.recordBtn) {
+    domElements.buttons.recordBtn.disabled = true;
+    domElements.buttons.stopRecordBtn.disabled = false;
+    domElements.buttons.downloadBtn.disabled = true;
+  }
+  domElements.log.textContent += "\n🔴 Recording started.";
+}
+
+function stopRecording() {
+  gazeRecording.isRecording = false;
+  if (domElements.buttons.recordBtn) {
+    domElements.buttons.recordBtn.disabled = false;
+    domElements.buttons.stopRecordBtn.disabled = true;
+    domElements.buttons.downloadBtn.disabled = gazeRecording.data.length === 0;
+  }
+  domElements.log.textContent += `\n⏹️ Recording stopped. ${gazeRecording.data.length} samples captured.`;
+}
+
+function downloadRecording() {
+  if (gazeRecording.data.length === 0) return;
+
+  const columns = [
+    "timestamp_ms", "raw_x", "raw_y",
+    "filtered_x", "filtered_y",
+    "calibrated_x_px", "calibrated_y_px",
+    "is_valid", "screen_width", "screen_height",
+  ];
+  const header = columns.join(",");
+  const rows = gazeRecording.data.map((row) =>
+    columns.map((col) => row[col] ?? "").join(",")
+  );
+  const csv = [header, ...rows].join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const dateStr = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  a.download = `peekr-gaze-${dateStr}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  domElements.log.textContent += `\n📥 Downloaded ${gazeRecording.data.length} samples as CSV.`;
+}
+
+export { startRecording, stopRecording, downloadRecording };
+
 /**
  * Calculate the coefficients for the linear model based on the distance to screen.
  * 
@@ -80,6 +138,9 @@ const domElements = {
     stopBtn: undefined,
     calibBtn: undefined,
     filtering: undefined,
+    recordBtn: undefined,
+    stopRecordBtn: undefined,
+    downloadBtn: undefined,
   },
   inputs: {
     distInput: undefined,
@@ -89,12 +150,33 @@ const domElements = {
   log: undefined,
   gazeDot: undefined,
   calibrationDot: undefined,
+  statusBadge: undefined,
+  recordingPanel: undefined,
+  steps: { step1: undefined, step2: undefined, step3: undefined },
   // Eye tracking elements
   video: undefined,
   canvas: undefined,
   leftEyeCanvas: undefined,
   rightEyeCanvas: undefined,
 };
+
+function setStatus(status, label) {
+  const badge = domElements.statusBadge;
+  if (!badge) return;
+  badge.className = `status-badge status-${status}`;
+  badge.textContent = label;
+}
+
+function activateStep(stepNum) {
+  const { step1, step2, step3 } = domElements.steps;
+  const steps = [step1, step2, step3];
+  steps.forEach((el, i) => {
+    if (!el) return;
+    el.classList.remove('active', 'done');
+    if (i + 1 < stepNum) el.classList.add('done');
+    else if (i + 1 === stepNum) el.classList.add('active');
+  });
+}
 
 // Assisted Calibration Logic
 const calibrationLogic = {
@@ -121,8 +203,10 @@ export function startAssistedCalibration() {
   calibrationLogic.calibrationInProgress = true;
   calibrationLogic.calibrationStep = 0;
   calibrationLogic.calibrationGazeData = [];
+  setStatus('calibrating', 'Calibrating...');
+  activateStep(3);
   showCalibrationDot();
-  document.getElementById("PeekrLog").textContent += "\n🔵 Assisted calibration started. Follow the blue dot.";
+  document.getElementById("PeekrLog").textContent += "\nAssisted calibration started. Follow the blue dot.";
   // Temporarily override onGaze
   calibrationLogic.calibrationGazeListener = (gaze) => {
     // Wait a short time at each corner, then record gaze
@@ -310,7 +394,10 @@ function finishAssistedCalibration() {
   const finalError = calculateError(currentParams);
   const initialError = calculateError({ distToScreen: distToScreen, xIntercept: 0, yIntercept: 0 });
   
-  domElements.log.textContent += `\n✅ Assisted calibration complete.`;
+  setStatus('tracking', 'Tracking');
+  activateStep(3);
+  domElements.steps.step3?.classList.add('done');
+  domElements.log.textContent += `\nAssisted calibration complete.`;
   domElements.log.textContent += `\n📊 Initial error: ${initialError.toFixed(6)}, Final error: ${finalError.toFixed(6)}`;
   domElements.log.textContent += `\n📏 Optimized distance: ${currentParams.distToScreen.toFixed(1)}cm`;
   domElements.log.textContent += `\n📍 X intercept: ${(currentParams.xIntercept * 100).toFixed(0)}, Y intercept: ${(currentParams.yIntercept * 100).toFixed(0)}`;
@@ -319,6 +406,7 @@ function finishAssistedCalibration() {
 
 export function startEyeTrackingWithCallbacks() {
   domElements.buttons.initBtn.disabled = true;
+  setStatus('loading', 'Loading model...');
   const dot = domElements.gazeDot;
   const logEl = domElements.log;
 
@@ -331,11 +419,16 @@ export function startEyeTrackingWithCallbacks() {
     leftEyeCanvas: eyeElements.leftEyeCanvas,
     rightEyeCanvas: eyeElements.rightEyeCanvas,
     onReady: () => {
-      logEl.textContent += "\n✅ Model Loaded. Run Eye Tracking Now.";
+      logEl.textContent += "\nModel loaded. You can now start tracking.";
+      setStatus('ready', 'Ready');
+      activateStep(2);
       // Enable buttons
       domElements.buttons.startBtn.disabled = false;
       domElements.buttons.stopBtn.disabled = false;
       domElements.buttons.calibBtn.disabled = false;
+      if (domElements.buttons.recordBtn) domElements.buttons.recordBtn.disabled = false;
+      // Show recording panel
+      if (domElements.recordingPanel) domElements.recordingPanel.hidden = false;
 
       dot.style.display = "block";
     },
@@ -383,6 +476,22 @@ export function startEyeTrackingWithCallbacks() {
       dot.style.left = `${xpred}px`;
       dot.style.top = `${ypred}px`;
       dot.style.background = clamped ? 'red' : 'green';
+
+      // Record gaze data if recording is active
+      if (gazeRecording.isRecording) {
+        gazeRecording.data.push({
+          timestamp_ms: (performance.now() - gazeRecording.startTime).toFixed(1),
+          raw_x: rawX.toFixed(4),
+          raw_y: rawY.toFixed(4),
+          filtered_x: filteredX.toFixed(4),
+          filtered_y: filteredY.toFixed(4),
+          calibrated_x_px: Math.round(xpred),
+          calibrated_y_px: Math.round(ypred),
+          is_valid: !clamped,
+          screen_width: window.innerWidth,
+          screen_height: window.innerHeight,
+        });
+      }
     }
   });
 }
@@ -404,6 +513,9 @@ export const applyAutoBindings = (buttons, inputs, log, gazeDot, calibrationDot)
     domElements.buttons.stopBtn = buttons.stopBtn;
     domElements.buttons.calibBtn = buttons.calibBtn;
     domElements.buttons.filtering = buttons.filtering;
+    domElements.buttons.recordBtn = buttons.recordBtn;
+    domElements.buttons.stopRecordBtn = buttons.stopRecordBtn;
+    domElements.buttons.downloadBtn = buttons.downloadBtn;
   }
   else {
     domElements.buttons.initBtn = document.getElementById("PeekrInitBtn");
@@ -411,6 +523,9 @@ export const applyAutoBindings = (buttons, inputs, log, gazeDot, calibrationDot)
     domElements.buttons.stopBtn = document.getElementById("PeekrStopBtn");
     domElements.buttons.calibBtn = document.getElementById("PeekrCalibBtn");
     domElements.buttons.filtering = document.getElementById("PeekrFiltering");
+    domElements.buttons.recordBtn = document.getElementById("PeekrRecordBtn");
+    domElements.buttons.stopRecordBtn = document.getElementById("PeekrStopRecordBtn");
+    domElements.buttons.downloadBtn = document.getElementById("PeekrDownloadBtn");
   }
   if (inputs) {
     domElements.inputs.distInput = inputs.distInput;
@@ -441,12 +556,31 @@ export const applyAutoBindings = (buttons, inputs, log, gazeDot, calibrationDot)
     domElements.calibrationDot = document.getElementById("PeekrCalibrationDot");
   }
 
+  // Bind new UI elements (status badge, steps, recording panel)
+  domElements.statusBadge = document.getElementById("PeekrStatus");
+  domElements.recordingPanel = document.getElementById("recording-panel");
+  domElements.steps.step1 = document.getElementById("step-1");
+  domElements.steps.step2 = document.getElementById("step-2");
+  domElements.steps.step3 = document.getElementById("step-3");
+
   // Set up event listeners
   domElements.buttons.initBtn.onclick = startEyeTrackingWithCallbacks;
-  domElements.buttons.startBtn.onclick = runEyeTracking;
-  domElements.buttons.stopBtn.onclick = stopEyeTracking;
+  domElements.buttons.startBtn.onclick = () => {
+    runEyeTracking();
+    setStatus('tracking', 'Tracking');
+    activateStep(3);
+  };
+  domElements.buttons.stopBtn.onclick = () => {
+    stopEyeTracking();
+    setStatus('ready', 'Stopped');
+    activateStep(2);
+  };
   domElements.buttons.calibBtn.onclick = startAssistedCalibration;
-  
-  // Distance input is now only used for coefficient calculation during calibration
-  // No need to update any display since coefficients are calculated dynamically
+
+  // Recording buttons
+  if (domElements.buttons.recordBtn) {
+    domElements.buttons.recordBtn.onclick = startRecording;
+    domElements.buttons.stopRecordBtn.onclick = stopRecording;
+    domElements.buttons.downloadBtn.onclick = downloadRecording;
+  }
 };

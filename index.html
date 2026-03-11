@@ -9,35 +9,80 @@
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
-  <div class="title-container">
-    <h1>👁️ Peekr Eye Tracking Demo</h1>
-    <p class="version-info">v1.1.0</p>
+  <div class="peekr-app">
+    <div class="title-container">
+      <h1>Peekr Eye Tracking Demo</h1>
+      <p class="version-info">v1.1.0</p>
+    </div>
+
+    <div id="PeekrStatus" class="status-badge status-idle">Not initialized</div>
+
+    <!-- Step 1 -->
+    <div class="step active" id="step-1">
+      <div class="step-header">
+        <span class="step-number">1</span>
+        <span class="step-label">Load Model</span>
+      </div>
+      <p class="step-description">Initialize the eye-tracking model and request camera access.</p>
+      <button id="PeekrInitBtn" class="btn btn-primary">Load Model</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step" id="step-2">
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <span class="step-label">Start Tracking</span>
+      </div>
+      <p class="step-description">Begin real-time gaze tracking. A green dot will follow your eyes.</p>
+      <div class="step-actions">
+        <button id="PeekrStartBtn" class="btn btn-primary" disabled>Start Tracking</button>
+        <button id="PeekrStopBtn" class="btn btn-danger" disabled>Stop</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step" id="step-3">
+      <div class="step-header">
+        <span class="step-number">3</span>
+        <span class="step-label">Calibrate</span>
+      </div>
+      <p class="step-description">Follow a blue dot to calibrate gaze accuracy for your setup.</p>
+      <button id="PeekrCalibBtn" class="btn btn-primary" disabled>Run Assisted Calibration</button>
+    </div>
+
+    <!-- Options -->
+    <div class="options-section">
+      <label class="checkbox-label">
+        <input type="checkbox" id="PeekrFiltering" name="PeekrFiltering" checked />
+        Apply Kalman Filtering
+      </label>
+    </div>
+
+    <!-- Recording panel (hidden until tracking) -->
+    <div class="recording-panel" id="recording-panel" hidden>
+      <h3>Gaze Recording</h3>
+      <div class="step-actions">
+        <button id="PeekrRecordBtn" class="btn btn-secondary" disabled>Record</button>
+        <button id="PeekrStopRecordBtn" class="btn btn-danger" disabled>Stop Recording</button>
+        <button id="PeekrDownloadBtn" class="btn btn-secondary" disabled>Download CSV</button>
+      </div>
+    </div>
+
+    <!-- Manual calibration (collapsed) -->
+    <details class="manual-calibration">
+      <summary>Manual Calibration</summary>
+      <div class="manual-calibration-body">
+        <p class="manual-hint">Adjust these values if assisted calibration isn't accurate enough.</p>
+        <label>Distance to Screen (cm) <input type="number" step="1" id="PeekrDistInput" value="40"></label>
+        <label>Horizontal Offset <input type="number" step="1" id="PeekrXInterceptInput" value="0"></label>
+        <label>Vertical Offset <input type="number" step="1" id="PeekrYInterceptInput" value="30"></label>
+      </div>
+    </details>
+
+    <!-- Log -->
+    <div id="PeekrLog"></div>
   </div>
 
-  <button id="PeekrInitBtn">
-    Init Eye Tracking
-  </button>
-  <button id="PeekrStartBtn" disabled>
-    Run Eye Tracking
-  </button>
-  <button id="PeekrStopBtn" disabled>
-    Stop Eye Tracking
-  </button>
-  <button id="PeekrCalibBtn" disabled>
-    Assisted Calibration
-  </button>
-  <input type="checkbox" id="PeekrFiltering" name="PeekrFiltering" checked />
-  <label for="PeekrFiltering">Apply Kalman Filtering</label>
-  
-  <div class="control-panel">
-    <h3>🔧 Calibration Controls</h3>
-    <label>Distance to Screen (cm): <input type="number" step="1" id="PeekrDistInput" value="40"></label>
-    <label>X Intercept: <input type="number" step="1" id="PeekrXInterceptInput" value="0"></label>
-    <label>Y Intercept: <input type="number" step="1" id="PeekrYInterceptInput" value="30"></label>
-    <p>🛠 Set your distance to screen and adjust intercepts until the green dot tracks your gaze accurately, or use the assisted calibration.</p>
-  </div>
-
-  <div id="PeekrLog"></div>
   <div id="PeekrGazeDot"></div>
 
   <script type="module">
