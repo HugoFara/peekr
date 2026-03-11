@@ -10,7 +10,7 @@ It runs entirely in the browser — no installation, no data sent to a server.
 
 ![Peekr 1.2.0 Screenshot](./image/Peekr%201.2.0%20screenshot.png)
 
-[Peekr 1.1.0 demo.webm](https://github.com/user-attachments/assets/4f9a84af-a20f-44a2-82b9-3776c876342e)
+[Peekr 1.2.0 demo.webm](./image/Peekr%201.2.0%20demo.webm)
 
 ## Install
 
