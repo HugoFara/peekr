@@ -141,6 +141,7 @@ const domElements = {
     recordBtn: undefined,
     stopRecordBtn: undefined,
     downloadBtn: undefined,
+    validateBtn: undefined,
   },
   inputs: {
     distInput: undefined,
@@ -152,7 +153,7 @@ const domElements = {
   calibrationDot: undefined,
   statusBadge: undefined,
   recordingPanel: undefined,
-  steps: { step1: undefined, step2: undefined, step3: undefined },
+  steps: { step1: undefined, step2: undefined, step3: undefined, step4: undefined },
   // Eye tracking elements
   video: undefined,
   canvas: undefined,
@@ -168,8 +169,8 @@ function setStatus(status, label) {
 }
 
 function activateStep(stepNum) {
-  const { step1, step2, step3 } = domElements.steps;
-  const steps = [step1, step2, step3];
+  const { step1, step2, step3, step4 } = domElements.steps;
+  const steps = [step1, step2, step3, step4];
   steps.forEach((el, i) => {
     if (!el) return;
     el.classList.remove('active', 'done');
@@ -183,7 +184,7 @@ const SAMPLES_PER_POINT = 30;
 const calibrationLogic = {
   calibrationInProgress: false,
   calibrationStep: 0,
-  calibrationGazeData: [],    // array of { samples: [{rawX, rawY}, ...] } per point
+  calibrationGazeData: [],    // array of { rawX, rawY } averaged per point
   calibrationDotReady: false,
   currentSamples: [],         // samples for the current point
   calibrationPoints: [
@@ -197,6 +198,16 @@ const calibrationLogic = {
     { x: 0.5, y: 0.9 }, // bottom-center
     { x: 0.9, y: 0.9 }  // bottom-right
   ],
+  // Validation points — held out from calibration fitting
+  validationPoints: [
+    { x: 0.3, y: 0.3 },
+    { x: 0.7, y: 0.3 },
+    { x: 0.3, y: 0.7 },
+    { x: 0.7, y: 0.7 },
+  ],
+  validationStep: 0,
+  validationData: [],
+  validationInProgress: false,
   calibrationGazeListener: () => {}
 };
 
@@ -401,18 +412,117 @@ function finishAssistedCalibration() {
   domElements.inputs.xInterceptInput.value = (currentParams.xIntercept * MODEL_DIST_X).toFixed(0);
   domElements.inputs.yInterceptInput.value = (currentParams.yIntercept * MODEL_DIST_Y).toFixed(0);
   
-  // Calculate final error for debugging
-  const finalError = calculateError(currentParams);
-  const initialError = calculateError({ distToScreen: distToScreen, xIntercept: 0, yIntercept: 0 });
-  
-  setStatus('tracking', 'Tracking');
-  activateStep(3);
-  domElements.steps.step3?.classList.add('done');
   const nPoints = calibrationLogic.calibrationGazeData.length;
-  domElements.log.textContent += `\nAssisted calibration complete (${nPoints} points, ${SAMPLES_PER_POINT} samples each).`;
-  domElements.log.textContent += `\n  Initial error: ${initialError.toFixed(6)}, Final error: ${finalError.toFixed(6)}`;
+  domElements.log.textContent += `\nCalibration fit done (${nPoints} points, ${SAMPLES_PER_POINT} samples each).`;
   domElements.log.textContent += `\n  Optimized distance: ${currentParams.distToScreen.toFixed(1)}cm`;
   domElements.log.textContent += `\n  X intercept: ${(currentParams.xIntercept * 100).toFixed(0)}, Y intercept: ${(currentParams.yIntercept * 100).toFixed(0)}`;
+
+  setStatus('tracking', 'Tracking');
+  activateStep(4);
+  if (domElements.buttons.validateBtn) domElements.buttons.validateBtn.disabled = false;
+}
+
+export function startValidation() {
+  if (calibrationLogic.validationInProgress || calibrationLogic.calibrationInProgress) return;
+  calibrationLogic.calibrationInProgress = true;
+  calibrationLogic.validationInProgress = true;
+  calibrationLogic.validationStep = 0;
+  calibrationLogic.validationData = [];
+  calibrationLogic.currentSamples = [];
+
+  setStatus('calibrating', 'Validating...');
+  domElements.log.textContent += "\nValidation: measuring prediction accuracy...";
+
+  calibrationLogic.calibrationGazeListener = (gaze) => {
+    if (calibrationLogic.validationStep >= calibrationLogic.validationPoints.length) return;
+    if (!calibrationLogic.calibrationDotReady) return;
+
+    let rawX = gaze.output.cpuData[0];
+    let rawY = gaze.output.cpuData[1];
+    if (document.getElementById("PeekrFiltering").checked) {
+      [rawX, rawY] = applyFilter(rawX, rawY);
+    }
+
+    calibrationLogic.currentSamples.push({ rawX, rawY });
+
+    if (calibrationLogic.currentSamples.length >= SAMPLES_PER_POINT) {
+      const avgX = calibrationLogic.currentSamples.reduce((s, d) => s + d.rawX, 0) / SAMPLES_PER_POINT;
+      const avgY = calibrationLogic.currentSamples.reduce((s, d) => s + d.rawY, 0) / SAMPLES_PER_POINT;
+      calibrationLogic.validationData.push({ rawX: avgX, rawY: avgY });
+      calibrationLogic.currentSamples = [];
+      calibrationLogic.validationStep++;
+
+      if (calibrationLogic.validationStep < calibrationLogic.validationPoints.length) {
+        showValidationDot();
+      } else {
+        finishValidation();
+      }
+    }
+  };
+
+  showValidationDot();
+}
+
+function showValidationDot() {
+  const point = calibrationLogic.validationPoints[calibrationLogic.validationStep];
+  domElements.calibrationDot.style.left = `calc(${point.x * 100}% - 15px)`;
+  domElements.calibrationDot.style.top = `calc(${point.y * 100}% - 15px)`;
+  domElements.calibrationDot.style.background = 'orange';
+  domElements.calibrationDot.style.display = 'block';
+  calibrationLogic.calibrationDotReady = false;
+  setTimeout(() => {
+    calibrationLogic.calibrationDotReady = true;
+  }, 1000);
+}
+
+function finishValidation() {
+  domElements.calibrationDot.style.display = 'none';
+  domElements.calibrationDot.style.background = 'blue';
+  calibrationLogic.calibrationGazeListener = () => {};
+  calibrationLogic.validationInProgress = false;
+  calibrationLogic.calibrationInProgress = false;
+
+  // Read calibrated parameters
+  const distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
+  const xIntercept = parseFloat(domElements.inputs.xInterceptInput.value) || 0;
+  const yIntercept = parseFloat(domElements.inputs.yInterceptInput.value) || 0;
+
+  const screenDiag = Math.sqrt(window.innerWidth ** 2 + window.innerHeight ** 2);
+  const errors = [];
+
+  domElements.log.textContent += "\nValidation results:";
+
+  for (let i = 0; i < calibrationLogic.validationData.length; i++) {
+    const point = calibrationLogic.validationPoints[i];
+    const gaze = calibrationLogic.validationData[i];
+
+    const [predX, predY] = moveCalibratedDot(
+      gaze.rawX, gaze.rawY, distToScreen,
+      xIntercept / MODEL_DIST_X, yIntercept / MODEL_DIST_Y
+    );
+    const expectedX = point.x * window.innerWidth;
+    const expectedY = point.y * window.innerHeight;
+
+    const errX = predX - expectedX;
+    const errY = predY - expectedY;
+    const errDist = Math.sqrt(errX ** 2 + errY ** 2);
+    errors.push({ errX, errY, errDist });
+
+    domElements.log.textContent += `\n  (${point.x}, ${point.y}): `
+      + `${errDist.toFixed(0)}px (dx=${errX.toFixed(0)}, dy=${errY.toFixed(0)})`;
+  }
+
+  const meanErr = errors.reduce((s, e) => s + e.errDist, 0) / errors.length;
+  const biasX = errors.reduce((s, e) => s + e.errX, 0) / errors.length;
+  const biasY = errors.reduce((s, e) => s + e.errY, 0) / errors.length;
+
+  domElements.log.textContent += `\n  Mean error: ${meanErr.toFixed(0)}px `
+    + `(${(meanErr / screenDiag * 100).toFixed(1)}% of screen diagonal)`;
+  domElements.log.textContent += `\n  Mean bias: dx=${biasX.toFixed(0)}px, dy=${biasY.toFixed(0)}px`;
+
+  setStatus('tracking', 'Tracking');
+  activateStep(4);
+  domElements.steps.step4?.classList.add('done');
 }
 
 
@@ -452,17 +562,17 @@ export function startEyeTrackingWithCallbacks() {
       const rawX = gaze.output.cpuData[0];  // range ~ [0,1]
       const rawY = gaze.output.cpuData[1];
 
-      // Read calibration settings
-      const distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
-      const x_intercept = parseFloat(domElements.inputs.xInterceptInput.value) || 0;
-      const y_intercept = parseFloat(domElements.inputs.yInterceptInput.value) || 0;
-
       let filteredX, filteredY;
 
       if (domElements.buttons.filtering.checked)
         [ filteredX, filteredY ] = applyFilter(rawX, rawY);
       else
         [ filteredX, filteredY ] = [ rawX, rawY ];
+
+      // Read calibration settings
+      const distToScreen = parseFloat(domElements.inputs.distInput.value) || 60;
+      const x_intercept = parseFloat(domElements.inputs.xInterceptInput.value) || 0;
+      const y_intercept = parseFloat(domElements.inputs.yInterceptInput.value) || 0;
 
       let [ xpred, ypred ] = moveCalibratedDot(
         filteredX,
@@ -574,6 +684,8 @@ export const applyAutoBindings = (buttons, inputs, log, gazeDot, calibrationDot)
   domElements.steps.step1 = document.getElementById("step-1");
   domElements.steps.step2 = document.getElementById("step-2");
   domElements.steps.step3 = document.getElementById("step-3");
+  domElements.steps.step4 = document.getElementById("step-4");
+  domElements.buttons.validateBtn = document.getElementById("PeekrValidateBtn");
 
   // Set up event listeners
   domElements.buttons.initBtn.onclick = startEyeTrackingWithCallbacks;
@@ -588,6 +700,9 @@ export const applyAutoBindings = (buttons, inputs, log, gazeDot, calibrationDot)
     activateStep(2);
   };
   domElements.buttons.calibBtn.onclick = startAssistedCalibration;
+  if (domElements.buttons.validateBtn) {
+    domElements.buttons.validateBtn.onclick = startValidation;
+  }
 
   // Recording buttons
   if (domElements.buttons.recordBtn) {
