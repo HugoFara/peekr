@@ -179,16 +179,23 @@ function activateStep(stepNum) {
 }
 
 // Assisted Calibration Logic
+const SAMPLES_PER_POINT = 30;
 const calibrationLogic = {
   calibrationInProgress: false,
   calibrationStep: 0,
-  calibrationGazeData: [],
+  calibrationGazeData: [],    // array of { samples: [{rawX, rawY}, ...] } per point
   calibrationDotReady: false,
-  calibrationCorners: [
+  currentSamples: [],         // samples for the current point
+  calibrationPoints: [
     { x: 0.1, y: 0.1 }, // top-left
+    { x: 0.5, y: 0.1 }, // top-center
     { x: 0.9, y: 0.1 }, // top-right
-    { x: 0.9, y: 0.9 }, // bottom-right
-    { x: 0.1, y: 0.9 }  // bottom-left
+    { x: 0.1, y: 0.5 }, // middle-left
+    { x: 0.5, y: 0.5 }, // center
+    { x: 0.9, y: 0.5 }, // middle-right
+    { x: 0.1, y: 0.9 }, // bottom-left
+    { x: 0.5, y: 0.9 }, // bottom-center
+    { x: 0.9, y: 0.9 }  // bottom-right
   ],
   calibrationGazeListener: () => {}
 };
@@ -203,29 +210,33 @@ export function startAssistedCalibration() {
   calibrationLogic.calibrationInProgress = true;
   calibrationLogic.calibrationStep = 0;
   calibrationLogic.calibrationGazeData = [];
+  calibrationLogic.currentSamples = [];
   setStatus('calibrating', 'Calibrating...');
   activateStep(3);
   showCalibrationDot();
   document.getElementById("PeekrLog").textContent += "\nAssisted calibration started. Follow the blue dot.";
   // Temporarily override onGaze
   calibrationLogic.calibrationGazeListener = (gaze) => {
-    // Wait a short time at each corner, then record gaze
-    if (calibrationLogic.calibrationStep < calibrationLogic.calibrationCorners.length) {
-      // Only record after a short delay to let user focus
-      if (!calibrationLogic.calibrationDotReady) return;
-      const gazePos = {
-        rawX: gaze.output.cpuData[0],
-        rawY: gaze.output.cpuData[1]
-      };
-      if (document.getElementById("PeekrFiltering").checked) {
-        [ gazePos.rawX, gazePos.rawY ] = applyFilter(gazePos.rawX, gazePos.rawY)
-      }
-      calibrationLogic.calibrationGazeData.push({
-        rawX: gaze.output.cpuData[0],
-        rawY: gaze.output.cpuData[1]
-      });
+    if (calibrationLogic.calibrationStep >= calibrationLogic.calibrationPoints.length) return;
+    if (!calibrationLogic.calibrationDotReady) return;
+
+    let rawX = gaze.output.cpuData[0];
+    let rawY = gaze.output.cpuData[1];
+    if (document.getElementById("PeekrFiltering").checked) {
+      [rawX, rawY] = applyFilter(rawX, rawY);
+    }
+
+    calibrationLogic.currentSamples.push({ rawX, rawY });
+
+    if (calibrationLogic.currentSamples.length >= SAMPLES_PER_POINT) {
+      // Average the samples for this point
+      const avgX = calibrationLogic.currentSamples.reduce((s, d) => s + d.rawX, 0) / SAMPLES_PER_POINT;
+      const avgY = calibrationLogic.currentSamples.reduce((s, d) => s + d.rawY, 0) / SAMPLES_PER_POINT;
+      calibrationLogic.calibrationGazeData.push({ rawX: avgX, rawY: avgY });
+      calibrationLogic.currentSamples = [];
       calibrationLogic.calibrationStep++;
-      if (calibrationLogic.calibrationStep < calibrationLogic.calibrationCorners.length) {
+
+      if (calibrationLogic.calibrationStep < calibrationLogic.calibrationPoints.length) {
         showCalibrationDot();
       } else {
         finishAssistedCalibration();
@@ -247,7 +258,7 @@ function showCalibrationDot() {
     domElements.calibrationDot.style.pointerEvents = 'none';
     document.body.appendChild(domElements.calibrationDot);
   }
-  const corner = calibrationLogic.calibrationCorners[calibrationLogic.calibrationStep];
+  const corner = calibrationLogic.calibrationPoints[calibrationLogic.calibrationStep];
   domElements.calibrationDot.style.left = `calc(${corner.x * 100}% - 15px)`;
   domElements.calibrationDot.style.top = `calc(${corner.y * 100}% - 15px)`;
   domElements.calibrationDot.style.display = 'block';
@@ -268,13 +279,13 @@ function finishAssistedCalibration() {
   // Try multiple starting distances to avoid local minima
   const startingDistances = [distToScreen, 40, 80, 120, 160, 200];
   
-  // Calculate mean gaze values for each corner
+  // Mean gaze values per point (already averaged during collection)
   const meanGazeX = calibrationLogic.calibrationGazeData.map(d => d.rawX);
   const meanGazeY = calibrationLogic.calibrationGazeData.map(d => d.rawY);
-  
-  // Calculate expected screen positions for each corner
-  const expectedScreenX = [0, 1, 1, 0]; // [TL, TR, BR, BL]
-  const expectedScreenY = [0, 0, 1, 1]; // [TL, TR, BR, BL]
+
+  // Expected screen positions matching calibrationPoints order
+  const expectedScreenX = calibrationLogic.calibrationPoints.map(p => p.x);
+  const expectedScreenY = calibrationLogic.calibrationPoints.map(p => p.y);
   
   // Function to calculate error for given parameters
   function calculateError(params) {
@@ -397,10 +408,11 @@ function finishAssistedCalibration() {
   setStatus('tracking', 'Tracking');
   activateStep(3);
   domElements.steps.step3?.classList.add('done');
-  domElements.log.textContent += `\nAssisted calibration complete.`;
-  domElements.log.textContent += `\n📊 Initial error: ${initialError.toFixed(6)}, Final error: ${finalError.toFixed(6)}`;
-  domElements.log.textContent += `\n📏 Optimized distance: ${currentParams.distToScreen.toFixed(1)}cm`;
-  domElements.log.textContent += `\n📍 X intercept: ${(currentParams.xIntercept * 100).toFixed(0)}, Y intercept: ${(currentParams.yIntercept * 100).toFixed(0)}`;
+  const nPoints = calibrationLogic.calibrationGazeData.length;
+  domElements.log.textContent += `\nAssisted calibration complete (${nPoints} points, ${SAMPLES_PER_POINT} samples each).`;
+  domElements.log.textContent += `\n  Initial error: ${initialError.toFixed(6)}, Final error: ${finalError.toFixed(6)}`;
+  domElements.log.textContent += `\n  Optimized distance: ${currentParams.distToScreen.toFixed(1)}cm`;
+  domElements.log.textContent += `\n  X intercept: ${(currentParams.xIntercept * 100).toFixed(0)}, Y intercept: ${(currentParams.yIntercept * 100).toFixed(0)}`;
 }
 
 
