@@ -7,10 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+## [1.2.0] - 2026-03-11
 
-- The tracking dot is now green when in-screen, red when out screen.
-- The X and Y coefficients were merged in a "distance to screen" parameter.
+### Added in 1.2.0
+
+- Guided stepper UI: 4-step onboarding flow (Load Model, Start Tracking, Calibrate, Validate) with status badge.
+- Validation step: measures prediction accuracy and bias against held-out points after calibration.
+- 9-point calibration grid (3x3) with 30 averaged samples per point for robust parameter fitting.
+- Multi-start gradient descent optimizer for calibration (distance, x_intercept, y_intercept).
+- Gaze recording panel: record gaze data and export as CSV.
+- Unit tests for `calculateCoefficients` and `moveCalibratedDot` (18 tests via Vitest).
+
+### Changed in 1.2.0
+
+- The tracking dot is now green when in-screen, red when out of screen.
+- The X and Y coefficients were merged into a single "distance to screen" parameter.
+- Complete CSS rewrite: card-based layout, step indicators, color-coded status badge, dark-themed log.
+- Improved calibration algorithm with better MSE fitting.
+- DOM layer cleanly separated from core logic (`src/index.js` handles UI, `src/core.js` handles control).
+
+### Fixed in 1.2.0
+
+- Reverted experimental model constants to correct values (MODEL_DIST_X = -270, MODEL_DIST_Y = 350).
+- Kalman-filtered values are now used during calibration when filtering is enabled.
 
 ## [1.1.0] - 2025-07-30
 

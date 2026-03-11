@@ -1,4 +1,4 @@
-# 👁️ Peekr: Browser-based Eye Tracking
+# Peekr: Browser-based Eye Tracking
 
 ![Peekr Welcome Screen](./image/Peekr%20Banner.png)
 
@@ -7,6 +7,8 @@ It runs entirely in the browser — no installation, no data sent to a server.
 
 > [!TIP]
 > You can test it on [GitHub Pages](https://hugofara.github.io/peekr/).
+
+![Peekr 1.2.0 Screenshot](./image/Peekr%201.2.0%20screenshot.png)
 
 [Peekr 1.1.0 demo.webm](https://github.com/user-attachments/assets/4f9a84af-a20f-44a2-82b9-3776c876342e)
 
@@ -20,7 +22,7 @@ Then clone and enter the folder with:
 git clone https://github.com/HugoFara/peekr.git
 cd peekr
 npm install
-# Build with Vite
+# Start the dev server
 npm run dev
 ```
 
@@ -28,37 +30,46 @@ Under the hood, we are using [Vite](https://vite.dev).
 If you only want to generate the website, use `npm run build`.
 The output will be in the `dist/` folder.
 
-## 🧪 Usage
+## Usage
 
-A demo should be available at <https://hugofara.github.io/peekr/>.
+The demo is available at <https://hugofara.github.io/peekr/>.
 
-Start by loading the model ("Init Eye Tracking").
-Then, either adjust the calibration values by yourself, or use the "Assisted Calibration" utility.
+The app guides you through 4 steps:
 
-## 🧠 Structure
+1. **Load Model** — Initialize the eye-tracking model and request camera access.
+2. **Start Tracking** — Begin real-time gaze tracking. A green dot follows your eyes.
+3. **Calibrate** — Follow a blue dot across 9 screen positions to calibrate gaze accuracy.
+4. **Validate** — Look at orange dots to measure prediction error and bias.
 
-You will find the following JS files:
+After calibration, you can also record gaze data and export it as CSV.
+
+## Structure
 
 ```text
 peekr/
 ├── src/
-│   ├── index.js        # Main entry point; handles UI bindings, calibration, and tracking logic
-│   ├── core.js         # Core logic for initializing, running, and stopping eye tracking; filtering
-│   ├── eyetracking.js  # Handles video input, face mesh, and communication with the worker
-│   ├── worker.js       # Web worker for running the ONNX gaze model off the main thread
-│   └── style.css       # Demo page styles
+│   ├── index.js        # UI layer: DOM bindings, calibration, validation, gaze recording
+│   ├── core.js         # Control layer: init, run, stop eye tracking; Kalman filtering
+│   ├── eyetracking.js  # Video/detection layer: webcam, MediaPipe FaceMesh, tensor preprocessing
+│   ├── worker.js       # Inference layer: Web Worker running the ONNX gaze model
+│   └── style.css       # Demo page styles (stepper UI, status badge, cards)
+├── tests/
+│   └── index.test.js   # Unit tests (Vitest) for calibration math
 ├── public/
 │   └── peekr.onnx      # Pretrained ONNX model for gaze estimation
-├── index.html          # Demo web page with controls and UI
+├── index.html          # Demo page with 4-step guided onboarding
 ├── package.json        # Project metadata and dependencies
-└── README.md           # Documentation and usage instructions
+└── README.md           # This file
 ```
 
-### `Peekr.applyAutoBindings({ buttons, inputs, log, gazeDot, calibrationDot })`
+Data flows: UI → Core → EyeTracking → Worker (postMessage) → back up the chain.
+
+## API
+
+### `Peekr.applyAutoBindings()`
 
 Bridges between a standard HTML page and Peekr interactions.
-
-It receives arrays of HTML elements as an input.
+Automatically discovers DOM elements by their `id` attributes and wires up all button handlers.
 
 ### `Peekr.initEyeTracking({ onReady, onGaze })`
 
@@ -79,7 +90,15 @@ Starts real-time gaze prediction.
 
 Stops webcam and gaze processing.
 
-## 🚀 Load via npm
+### `Peekr.startAssistedCalibration()`
+
+Runs the 9-point assisted calibration. Shows blue dots at each position, collects 30 gaze samples per point, and optimizes distance-to-screen and offset parameters via gradient descent.
+
+### `Peekr.startValidation()`
+
+Runs validation against 4 held-out points. Reports per-point error, mean error (in pixels and as % of screen diagonal), and mean directional bias.
+
+## Load via npm
 
 > [!IMPORTANT]
 > The `peekr` package on npm is Aryaman's original version, which may differ significantly from this fork.
@@ -96,14 +115,24 @@ Then:
 import * as Peekr from 'peekr';
 ```
 
-## 🧠 Credits
+## Testing
+
+Run all tests:
+
+```bash
+npm run test
+```
+
+Tests cover `calculateCoefficients` and `moveCalibratedDot` with edge cases (zero/negative distances, extreme values, floating point precision, different screen resolutions).
+
+## Credits
 
 Built by **Aryaman Taore** at [Dakin Lab](https://www.dakinlab.org) and [Stanford Brain Development & Education Lab](https://edneuro.stanford.edu).
 
 The web part received major changes from [Hugo Fara](https://hugofara.net).
-It includes a new calibration set up and a Kalman filtering of the output.
+It includes a new calibration setup, validation, gaze recording, and Kalman filtering of the output.
 
-## 🎓 Background
+## Background
 
 Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine learning engineer.
 The project emerged during Aryaman's PhD at the University of Auckland and continued through his postdoctoral research at **Stanford University**.
@@ -114,14 +143,14 @@ Each participant used their own personal setup.
 
 **Accuracy** (after calibration):
 
-* Mean horizontal error: **1.53 cm** (~1.75° visual angle)
-* Mean vertical error: **2.20 cm** (~2.52° visual angle)
+* Mean horizontal error: **1.53 cm** (~1.75 visual angle)
+* Mean vertical error: **2.20 cm** (~2.52 visual angle)
 
 These results were obtained from 30 randomly selected participants using their own setups, with no supervision.
 Each participant followed a stimulus on screen after completing a simple 5-dot calibration.
 The calibration consisted of four dots in the corners and one in the center of the screen.
 After this, a linear fit was applied separately to the x and y axes to adjust the gaze predictions.
 
-## 🗪 License
+## License
 
 [MIT](https://mit-license.org/)
