@@ -4,8 +4,8 @@
 import { runEyeTracking, applyFilter, initEyeTracking, stopEyeTracking } from "./core";
 
 // Model distance constants (in cm)
-const MODEL_DIST_X = -30;
-const MODEL_DIST_Y = 25;
+const MODEL_DIST_X = -270;
+const MODEL_DIST_Y = 350;
 
 // ── Gaze recording ──────────────────────────────────────────────────────────
 const gazeRecording = {
@@ -80,7 +80,7 @@ export function calculateCoefficients(distToScreen) {
 export function moveCalibratedDot(rawX, rawY, distToScreen, x_intercept, y_intercept) {
   // Calculate coefficients based on distance
   const { coef_x, coef_y } = calculateCoefficients(distToScreen);
-  const xpred = (coef_x * (rawX - 0.5) + x_intercept) * screen.width / 2;
+  const xpred = (coef_x * (rawX - 0.5) + x_intercept) * screen.width;
   const ypred = (coef_y * rawY + y_intercept) * screen.height;
 
   return [ xpred, ypred ];
