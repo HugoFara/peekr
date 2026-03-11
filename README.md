@@ -14,7 +14,7 @@ It runs entirely in the browser — no installation, no data sent to a server.
 
 You need to get [Node](https://nodejs.org/en/download) first.
 
-Then go the folder with:
+Then clone and enter the folder with:
 
 ```sh
 git clone https://github.com/HugoFara/peekr.git
@@ -82,13 +82,12 @@ Stops webcam and gaze processing.
 ## 🚀 Load via npm
 
 > [!IMPORTANT]
-> I (Hugo) an responsible for the changes on this fork.
-> Loading from NPM will download the version from Aryaman, which may differ significantly.
+> The `peekr` package on npm is Aryaman's original version, which may differ significantly from this fork.
 
-From the official version of peekr.
+To install this fork directly from GitHub:
 
 ```bash
-npm install peekr
+npm install github:HugoFara/peekr
 ```
 
 Then:
@@ -117,6 +116,7 @@ Each participant used their own personal setup.
 
 * Mean horizontal error: **1.53 cm** (~1.75° visual angle)
 * Mean vertical error: **2.20 cm** (~2.52° visual angle)
+
 These results were obtained from 30 randomly selected participants using their own setups, with no supervision.
 Each participant followed a stimulus on screen after completing a simple 5-dot calibration.
 The calibration consisted of four dots in the corners and one in the center of the screen.
