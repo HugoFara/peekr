@@ -1,6 +1,7 @@
 /*
  * Handles video input, face mesh, and communication with the worker
  */
+import { FaceMesh } from "@mediapipe/face_mesh";
 import ndarray from "ndarray";
 import ops from "ndarray-ops";
 
@@ -65,9 +66,9 @@ export function setupFaceMesh(video, onReady, onGaze, leftCanvas = null, rightCa
     if (onReady) onReady();
   });
   
-  faceMesh = new window.FaceMesh({
-    locateFile: (file) =>
-      `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`,
+  const base = import.meta.env.BASE_URL || '/';
+  faceMesh = new FaceMesh({
+    locateFile: (file) => `${base}mediapipe/${file}`,
   });
   
   faceMesh.setOptions({

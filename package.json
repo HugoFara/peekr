@@ -22,6 +22,7 @@
     "author": "Aryaman Taore",
     "license": "MIT",
     "dependencies": {
+        "@mediapipe/face_mesh": "^0.4.1633559619",
         "kalmanjs": "^1.1.0",
         "ndarray": "^1.0.19",
         "ndarray-ops": "^1.2.2",
