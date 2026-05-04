@@ -1,0 +1,151 @@
+{
+  "id": 4,
+  "name": "Peekr - Eye-Tracking Task",
+  "shortDescription": "Browser-based eye-tracking via WebAssembly, no install needed.",
+  "description": "A browser-based eye-tracking library implemented using WebAssembly technology. Peekr enables web-based eye-tracking experiments that can run directly in modern browsers without additional software installation. Full documentation and implementation details are available on the GitHub repository. This tool facilitates online eye-tracking research for event cognition and visual attention studies.",
+  "domains": [
+    "Eye Tracking",
+    "Utilities"
+  ],
+  "contact person": "Hugo.Farajallah@unige.ch",
+  "lab url": "https://evolvinglanguage.ch/transversal-task-forces/",
+  "target population": {
+    "ageCategories": [
+      "young adults",
+      "middle age"
+    ],
+    "clinicalStatus": "non-clinical",
+    "notes": "Adults with typical vision"
+  },
+  "formats": [
+    "online"
+  ],
+  "modalities": [
+    "behavioral"
+  ],
+  "oses": [
+    "windows",
+    "ios",
+    "other"
+  ],
+  "languages": [
+    "English"
+  ],
+  "createdDate": "2025-02-05",
+  "lastModified": "2025-07-30",
+  "url": "https://hugofara.github.io/peekr/",
+  "run-site": "/static/tasks/peekr/index.html",
+  "localDataExport": true,
+  "dataVariables": [
+    {
+      "name": "gaze_x",
+      "type": "number",
+      "category": "behavioral",
+      "description": "Horizontal gaze position",
+      "unit": "px"
+    },
+    {
+      "name": "gaze_y",
+      "type": "number",
+      "category": "behavioral",
+      "description": "Vertical gaze position",
+      "unit": "px"
+    },
+    {
+      "name": "fixation_duration",
+      "type": "number",
+      "category": "behavioral",
+      "description": "Duration of fixation",
+      "unit": "ms"
+    },
+    {
+      "name": "timestamp",
+      "type": "number",
+      "category": "behavioral",
+      "description": "Sample timestamp",
+      "unit": "ms"
+    },
+    {
+      "name": "calibration_accuracy",
+      "type": "number",
+      "category": "behavioral",
+      "description": "Calibration accuracy score",
+      "unit": "px"
+    }
+  ],
+  "citations": [],
+  "engine": "html",
+  "downloads": [
+    {
+      "label": "web",
+      "url": "/static/zips/peekr.zip"
+    }
+  ],
+  "outputs": {
+    "aims": "Web-based gaze tracking for reading and visual attention research",
+    "formats": [
+      {
+        "type": "eyetracking",
+        "description": "Continuous gaze samples (library output, format depends on integration)"
+      }
+    ],
+    "design": {
+      "trialBased": false,
+      "samplingRate": "30-60 Hz (depends on webcam and browser)"
+    },
+    "derivedMeasures": [
+      "Fixation locations and durations",
+      "Saccade patterns and scanpaths",
+      "Areas of interest (AOI) dwell times"
+    ],
+    "variables": [
+      {
+        "name": "gaze_x",
+        "type": "number",
+        "role": "dependent",
+        "description": "Horizontal gaze position",
+        "primary": true,
+        "unit": "px"
+      },
+      {
+        "name": "gaze_y",
+        "type": "number",
+        "role": "dependent",
+        "description": "Vertical gaze position",
+        "primary": true,
+        "unit": "px"
+      },
+      {
+        "name": "fixation_duration",
+        "type": "number",
+        "role": "dependent",
+        "description": "Duration of fixation",
+        "unit": "ms"
+      },
+      {
+        "name": "timestamp",
+        "type": "number",
+        "role": "metadata",
+        "description": "Sample timestamp",
+        "unit": "ms"
+      },
+      {
+        "name": "calibration_accuracy",
+        "type": "number",
+        "role": "metadata",
+        "description": "Calibration accuracy score",
+        "unit": "px"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Hugo Farajallah",
+      "roles": [
+        "software",
+        "documentation"
+      ],
+      "affiliation": "University of Geneva"
+    }
+  ]
+}

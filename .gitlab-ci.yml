@@ -1,0 +1,24 @@
+stages:
+  - build
+
+build:
+  stage: build
+  image: node:22
+  tags:
+    - node
+  script:
+    - apt-get update -qq && apt-get install -y -qq zip > /dev/null
+    - npm ci
+    - npm run build-gh
+    - test -f task.json
+    - test -d dist
+    - cd dist && zip -r ../task.zip . && cd ..
+  artifacts:
+    paths:
+      - task.json
+      - dist/
+      - task.zip
+    expire_in: 90 days
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

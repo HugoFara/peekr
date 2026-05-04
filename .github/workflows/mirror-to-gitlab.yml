@@ -1,0 +1,35 @@
+name: Mirror to GitLab
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: mirror-to-gitlab
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure SSH for gitlab.unige.ch
+        env:
+          GITLAB_DEPLOY_KEY: ${{ secrets.GITLAB_DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$GITLAB_DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H gitlab.unige.ch >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Push main and tags to GitLab
+        run: |
+          git remote add gitlab git@gitlab.unige.ch:ttf-digital-data-generation/nccr-evolang-tasks/peekr-eye-tracking-task.git
+          git push --force gitlab refs/remotes/origin/main:refs/heads/main
+          git push --force --tags gitlab
