@@ -1,8 +1,12 @@
 /*
  * Handles video input, face mesh, and communication with the worker
  */
-import * as faceMeshModule from "@mediapipe/face_mesh";
-const { FaceMesh } = faceMeshModule;
+// `@mediapipe/face_mesh` is loaded via a classic <script> tag in
+// index.html (it's a frozen pre-2022 IIFE that attaches `FaceMesh` to
+// the global; its package.json declares `"sideEffects": []`, which
+// makes Vite tree-shake any ES import). See vite.config.js for the
+// static-copy that puts face_mesh.js under public-served `/mediapipe/`.
+const FaceMesh = globalThis.FaceMesh;
 import ndarray from "ndarray";
 import ops from "ndarray-ops";
 

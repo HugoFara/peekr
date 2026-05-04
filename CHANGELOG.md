@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - ESLint no longer reformats vendored MediaPipe glue under `public/`: scoped `@stylistic/indent` to `src/` and added `public/` and `dist/` to the global ignores.
+- Dev mode `SyntaxError: doesn't provide an export named: 'default'` on `@mediapipe/face_mesh`: the package declares `"sideEffects": []`, which causes Vite/rolldown to tree-shake the bare ES import and to fail CJS interop on the optimized bundle. Load `face_mesh.js` as a classic `<script>` tag in `index.html` instead and read `FaceMesh` from `globalThis`.
 
 ## [1.2.0] - 2026-03-11
 
