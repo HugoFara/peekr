@@ -143,3 +143,7 @@ vite.config.ts.timestamp-*
 # WASM files
 
 public/ort-wasm-simd-threaded*
+
+# MediaPipe FaceMesh WASM/asset files — copied from node_modules at build/dev
+# time by vite-plugin-static-copy (see vite.config.js).
+public/mediapipe/

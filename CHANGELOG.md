@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded `onnxruntime-web` 1.22 → 1.25.
 - Bumped semver-compatible dependencies: `@stylistic/eslint-plugin` 5.2 → 5.10, `vite-plugin-wasm` 3.5 → 3.6.
 - `FaceMesh` is now imported as a namespace from `@mediapipe/face_mesh` to satisfy Vite 8's stricter rolldown-based CommonJS interop.
+- Build now copies MediaPipe FaceMesh runtime assets (~17 MB of WASM, asset-data, and JS glue) from `node_modules/@mediapipe/face_mesh/` at dev/build time via `vite-plugin-static-copy`. The corresponding `public/mediapipe/` directory is no longer tracked in git.
 
 ### Fixed
 
