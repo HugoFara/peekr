@@ -1,16 +1,24 @@
 /*
- * Handles video input, face mesh, and communication with the worker
+ * Handles video input and communication with the face-detection and
+ * gaze-inference workers.
+ *
+ * Pipeline per video frame:
+ *   video frame ready (rVFC)
+ *     → createImageBitmap (transferable)
+ *     → faceWorker.detectForVideo  (runs in its own thread)
+ *     → eye-corner landmarks come back
+ *     → main thread crops the eye regions, preprocesses tensors
+ *     → onnxWorker.run gaze inference
  */
-import * as faceMeshModule from "@mediapipe/face_mesh";
-const { FaceMesh } = faceMeshModule;
 import ndarray from "ndarray";
 import ops from "ndarray-ops";
 
 let rafId;
 let continueProcessing = false;
-let eyeTrackingWorker = null;  // ✅ Track current worker instance
+let eyeTrackingWorker = null;
+let faceWorker = null;
+let detectInFlight = false;
 let inputVideo;
-let faceMesh;
 let leftEyeCanvas;
 let rightEyeCanvas;
 let leftEyectx;
@@ -32,103 +40,152 @@ export function createWorker(onGazeCallback, onModelReady = null) {
       return;
     }
 
-    // Handle model lifecycle messages
     if (type === "modelLoaded") {
-      console.log(`ℹ️ Received "modelLoaded" from worker`);
       if (onModelReady) onModelReady();
       return;
     }
 
     if (type === "modelLoadFailed") {
-      console.error("⚠️ Model failed to load inside worker");
+      console.error("Gaze model failed to load inside worker");
       return;
     }
 
-    // All other messages are gaze updates
     if (onGazeCallback) onGazeCallback(data);
   };
 
   return eyeTrackingWorker;
 }
 
+function setupFaceWorker(onReady) {
+  // Classic (non-module) worker: tasks-vision's WASM-glue loader uses
+  // `importScripts`, which only exists in classic workers. In a module
+  // worker its loader can't expose `ModuleFactory` on the worker global
+  // and init throws "ModuleFactory not set." (upstream issue #5527).
+  faceWorker = new Worker(
+    new URL('./face-worker.js', import.meta.url)
+  );
+
+  faceWorker.onmessage = (e) => {
+    const msg = e.data;
+    if (msg.type === "ready") {
+      onReady();
+    } else if (msg.type === "landmarks") {
+      detectInFlight = false;
+      onLandmarks(msg.eyeCorners);
+    } else if (msg.type === "detectError") {
+      detectInFlight = false;
+      console.warn(`FaceLandmarker detect error: ${msg.message}`);
+    } else if (msg.type === "initError") {
+      console.error(`FaceLandmarker init error: ${msg.message}`);
+    }
+  };
+
+  const base = import.meta.env.BASE_URL || '/';
+  faceWorker.postMessage({
+    type: "init",
+    wasmDir: new URL(`${base}tasks-vision/wasm`, location.href).href,
+    modelPath: new URL(`${base}tasks-vision/face_landmarker.task`, location.href).href,
+  });
+}
+
 export function setupFaceMesh(video, onReady, onGaze, leftCanvas = null, rightCanvas = null) {
   inputVideo = video;
-  
-  // Initialize canvas elements if provided
+
   if (leftCanvas && rightCanvas) {
     leftEyeCanvas = leftCanvas;
     rightEyeCanvas = rightCanvas;
     leftEyectx = leftEyeCanvas.getContext("2d", { willReadFrequently: true });
     rightEyectx = rightEyeCanvas.getContext("2d", { willReadFrequently: true });
   }
-  
-  eyeTrackingWorker = createWorker(onGaze, () => {
-    console.log("👁️ Model loaded inside worker, calling onReady");
+
+  const gazeReady = createReadiness();
+  const faceReady = createReadiness();
+
+  eyeTrackingWorker = createWorker(onGaze, gazeReady.resolve);
+  setupFaceWorker(faceReady.resolve);
+
+  Promise.all([gazeReady.promise, faceReady.promise]).then(() => {
     if (onReady) onReady();
   });
-  
-  const base = import.meta.env.BASE_URL || '/';
-  faceMesh = new FaceMesh({
-    locateFile: (file) => `${base}mediapipe/${file}`,
-  });
-  
-  faceMesh.setOptions({
-    selfieMode: true,
-    refineLandmarks: true,
-    maxNumFaces: 1,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5,
-  });
-  
-  faceMesh.onResults(onResultsFaceMesh);
-  
+
   inputVideo.addEventListener("play", () => {
     continueProcessing = true;
   });
 }
 
+function createReadiness() {
+  let resolve;
+  const promise = new Promise((r) => { resolve = r; });
+  return { promise, resolve };
+}
+
 export function startInference() {
   continueProcessing = true;
-    
-  async function run() {
+
+  const useRvfc = typeof inputVideo.requestVideoFrameCallback === 'function';
+
+  function step() {
     if (!continueProcessing) return;
-    
-    await faceMesh.send({ image: inputVideo });
-    
-    // Schedule next frame
-    rafId = requestAnimationFrame(run);
+
+    if (
+      !detectInFlight
+      && faceWorker
+      && inputVideo.readyState >= 2
+      && inputVideo.videoWidth > 0
+    ) {
+      detectInFlight = true;
+      const timestamp = performance.now();
+      createImageBitmap(inputVideo).then((bitmap) => {
+        if (!continueProcessing) {
+          bitmap.close();
+          detectInFlight = false;
+          return;
+        }
+        faceWorker.postMessage(
+          { type: "detect", bitmap, timestamp },
+          [bitmap]
+        );
+      }).catch((err) => {
+        detectInFlight = false;
+        console.warn(`createImageBitmap failed: ${err.message}`);
+      });
+    }
+
+    scheduleNext();
   }
-    
-  run();
+
+  function scheduleNext() {
+    if (!continueProcessing) return;
+    if (useRvfc) {
+      rafId = inputVideo.requestVideoFrameCallback(step);
+    } else {
+      rafId = requestAnimationFrame(step);
+    }
+  }
+
+  scheduleNext();
 }
-      
+
 export function stopInference() {
   continueProcessing = false;
-  
+
   if (rafId !== null) {
+    if (inputVideo && typeof inputVideo.cancelVideoFrameCallback === 'function') {
+      inputVideo.cancelVideoFrameCallback(rafId);
+    }
     cancelAnimationFrame(rafId);
     rafId = null;
   }
 }
-      
 
-function onResultsFaceMesh(results) {
-  if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0)
-    return;
 
-  const landmarks = results.multiFaceLandmarks[0];
+function onLandmarks(eyeCorners) {
   const w = inputVideo.videoWidth;
   const h = inputVideo.videoHeight;
 
-  const leftEyeCoor = [];
-  const rightEyeCoor = [];
+  const leftEyeCoor = eyeCorners.slice(0, 4).map((p) => [p.x, p.y]);
+  const rightEyeCoor = eyeCorners.slice(4, 8).map((p) => [p.x, p.y]);
 
-  collectCoordinates(landmarks, [130, 27, 243, 23], leftEyeCoor);
-  collectCoordinates(landmarks, [463, 257, 359, 253], rightEyeCoor);
-
-  if (leftEyeCoor.length === 0 || rightEyeCoor.length === 0) return;
-
-  // LEFT EYE
   let [ulx, uly, width, height] = convertToYolo(leftEyeCoor, w, h);
   const kps = [
     ulx / w,
@@ -149,7 +206,6 @@ function onResultsFaceMesh(results) {
     128
   );
 
-  // RIGHT EYE
   [ulx, uly, width, height] = convertToYolo(rightEyeCoor, w, h);
   kps.push(
     ulx / w,
@@ -194,10 +250,8 @@ function preprocess(data, width, height) {
     height,
     width,
   ]);
-  
-  // Normalize 0-255 to 0 - 1
+
   ops.divseq(dataFromImage, 255.0);
-  // Realign imageData from [224*224*4] to the correct dimension [1*3*224*224].
   ops.assign(
     dataProcessed.pick(0, 0, null, null),
     dataFromImage.pick(null, null, 2),
@@ -220,7 +274,7 @@ function preprocess_kps(data) {
     data.length,
   ]);
   ops.assign(dataProcessed.pick(0, null), dataFromImage);
-  
+
   return new Float32Array(dataProcessed.data);
 }
 
@@ -236,11 +290,3 @@ function convertToYolo(feature, w, h) {
   height = box[3] * h;
   return [upper_left_x, upper_left_y, width, height];
 }
-
-function collectCoordinates(landmarks, indices, coordinates) {
-  indices.forEach((index) => {
-    const point = landmarks[index];
-    coordinates.push([point.x, point.y]);
-  });
-}
-  

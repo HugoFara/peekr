@@ -50,19 +50,21 @@ peekr/
 ├── src/
 │   ├── index.js        # UI layer: DOM bindings, calibration, validation, gaze recording
 │   ├── core.js         # Control layer: init, run, stop eye tracking; Kalman filtering
-│   ├── eyetracking.js  # Video/detection layer: webcam, MediaPipe FaceMesh, tensor preprocessing
-│   ├── worker.js       # Inference layer: Web Worker running the ONNX gaze model
+│   ├── eyetracking.js  # Video orchestration: webcam, frame dispatch, eye crops, tensor preprocessing
+│   ├── face-worker.js  # Face-detection worker: MediaPipe FaceLandmarker (tasks-vision)
+│   ├── worker.js       # Gaze inference worker: ONNX Runtime running the gaze model
 │   └── style.css       # Demo page styles (stepper UI, status badge, cards)
 ├── tests/
 │   └── index.test.js   # Unit tests (Vitest) for calibration math
 ├── public/
-│   └── peekr.onnx      # Pretrained ONNX model for gaze estimation
+│   ├── peekr.onnx                    # Pretrained ONNX gaze model
+│   └── tasks-vision/                  # MediaPipe FaceLandmarker model + WASM
 ├── index.html          # Demo page with 4-step guided onboarding
 ├── package.json        # Project metadata and dependencies
 └── README.md           # This file
 ```
 
-Data flows: UI → Core → EyeTracking → Worker (postMessage) → back up the chain.
+Data flows: UI → Core → EyeTracking → (face-worker | gaze-worker) via postMessage → back up the chain.
 
 ## API
 

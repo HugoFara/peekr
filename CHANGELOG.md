@@ -9,14 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Migrated face detection from the frozen `@mediapipe/face_mesh` Solutions API to `@mediapipe/tasks-vision` `FaceLandmarker` (v0.10.35).
+- Face detection now runs in a dedicated Web Worker (`src/face-worker.js`), keeping the main thread free for eye-region preprocessing and the gaze ONNX postMessage.
+- Frame scheduling switched from `requestAnimationFrame` (60 Hz, often re-detecting the same frame) to `requestVideoFrameCallback` (fires per decoded video frame, ~camera framerate). Falls back to `requestAnimationFrame` when unavailable.
+- Bundled `face_landmarker.task` (~3.6 MB) and the `tasks-vision` WASM (~32 MB across SIMD-threaded, ES-module, and no-SIMD variants) under `public/tasks-vision/`. Net static-asset growth ~+19 MB versus the legacy `public/mediapipe/` face_mesh bundle.
 - Upgraded major dev dependencies: `eslint` 9 → 10, `vitest` 3 → 4, `globals` 16 → 17, `vite` 7 → 8.
 - Upgraded `onnxruntime-web` 1.22 → 1.25.
 - Bumped semver-compatible dependencies: `@stylistic/eslint-plugin` 5.2 → 5.10, `vite-plugin-wasm` 3.5 → 3.6.
-- `FaceMesh` is now imported as a namespace from `@mediapipe/face_mesh` to satisfy Vite 8's stricter rolldown-based CommonJS interop.
+
+### Removed
+
+- `@mediapipe/face_mesh` dependency and its bundled WASM/binarypb assets under `public/mediapipe/`.
 
 ### Fixed
 
 - ESLint no longer reformats vendored MediaPipe glue under `public/`: scoped `@stylistic/indent` to `src/` and added `public/` and `dist/` to the global ignores.
+
+### Known Issues
+
+- On Linux/Firefox, `tasks-vision` `detectForVideo` may throw `RuntimeError: index out of bounds` after a few frames (no reproduction in Chromium). Cause is upstream and unreported as of 2026-05-04. Workaround: use a Chromium-based browser for development on Linux.
 
 ## [1.2.0] - 2026-03-11
 

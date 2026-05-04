@@ -143,3 +143,6 @@ vite.config.ts.timestamp-*
 # WASM files
 
 public/ort-wasm-simd-threaded*
+
+# MediaPipe tasks-vision WASM — copied from node_modules at install/build time
+public/tasks-vision/wasm/

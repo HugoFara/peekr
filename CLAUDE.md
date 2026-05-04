@@ -16,14 +16,15 @@ Peekr is a browser-based eye-tracking module combining MediaPipe (face/eye detec
 
 ## Architecture
 
-Four-layer pipeline, each file has a single responsibility:
+Five-layer pipeline, each file has a single responsibility:
 
 1. **`src/index.js`** — UI layer: DOM bindings, calibration logic (assisted & manual), gaze recording/CSV export. Public API entry point (`applyAutoBindings`, `startAssistedCalibration`, etc.).
 2. **`src/core.js`** — Control layer: `initEyeTracking()`, `runEyeTracking()`, `stopEyeTracking()`, Kalman filter application.
-3. **`src/eyetracking.js`** — Video/detection layer: webcam capture, MediaPipe FaceMesh (CDN-loaded), eye landmark extraction, tensor preprocessing, Web Worker communication.
-4. **`src/worker.js`** — Inference layer: runs in a Web Worker, loads `public/peekr.onnx` via ONNX Runtime, returns gaze predictions.
+3. **`src/eyetracking.js`** — Video orchestration layer: webcam capture, dispatches frames to the face worker via `requestVideoFrameCallback` + `createImageBitmap`, eye-region cropping, tensor preprocessing, gaze worker postMessage.
+4. **`src/face-worker.js`** — Face-detection worker: hosts MediaPipe `FaceLandmarker` (`@mediapipe/tasks-vision`), returns the 8 eye-corner landmarks per frame.
+5. **`src/worker.js`** — Gaze inference worker: loads `public/peekr.onnx` via ONNX Runtime, returns gaze predictions.
 
-Data flows: UI → Core → EyeTracking → Worker (postMessage) → back up the chain.
+Data flows: UI → Core → EyeTracking → (face-worker | gaze-worker) via postMessage → back up the chain.
 
 ## Key Conventions
 
