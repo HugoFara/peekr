@@ -146,3 +146,6 @@ public/ort-wasm-simd-threaded*
 
 # MediaPipe tasks-vision WASM — copied from node_modules at install/build time
 public/tasks-vision/wasm/
+
+# Face worker — built as IIFE from src/face-worker.js by predev/prebuild
+public/tasks-vision/face-worker.js

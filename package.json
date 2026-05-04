@@ -4,6 +4,9 @@
     "type": "module",
     "description": "Browser-based ONNX eye tracking module using MediaPipe + onnxruntime-web",
     "scripts": {
+        "build:face-worker": "vite build --config vite.face-worker.config.js",
+        "predev": "npm run build:face-worker",
+        "prebuild": "npm run build:face-worker",
         "dev": "vite",
         "build": "vite build",
         "build-gh": "vite build --base=./",

@@ -57,13 +57,17 @@ export function createWorker(onGazeCallback, onModelReady = null) {
 }
 
 function setupFaceWorker(onReady) {
-  // Classic (non-module) worker: tasks-vision's WASM-glue loader uses
-  // `importScripts`, which only exists in classic workers. In a module
+  // Classic (non-module) worker. tasks-vision's WASM-glue loader uses
+  // `importScripts`, which only exists in classic workers — in a module
   // worker its loader can't expose `ModuleFactory` on the worker global
   // and init throws "ModuleFactory not set." (upstream issue #5527).
-  faceWorker = new Worker(
-    new URL('./face-worker.js', import.meta.url)
-  );
+  //
+  // Vite's dev server doesn't bundle classic workers (it serves source
+  // with ESM imports, which a classic worker can't parse). So we build
+  // face-worker.js as an IIFE library to public/tasks-vision/ via a
+  // separate `vite.face-worker.config.js`, and load it as a static URL.
+  const base = import.meta.env.BASE_URL || '/';
+  faceWorker = new Worker(`${base}tasks-vision/face-worker.js`);
 
   faceWorker.onmessage = (e) => {
     const msg = e.data;
@@ -80,7 +84,6 @@ function setupFaceWorker(onReady) {
     }
   };
 
-  const base = import.meta.env.BASE_URL || '/';
   faceWorker.postMessage({
     type: "init",
     wasmDir: new URL(`${base}tasks-vision/wasm`, location.href).href,

@@ -58,7 +58,7 @@ self.onmessage = async (e) => {
 
     const landmarks = faces[0];
     const eyeCorners = EYE_LANDMARK_INDICES.map((i) => ({
-      x: 1 - landmarks[i].x,
+      x: landmarks[i].x,
       y: landmarks[i].y,
     }));
     self.postMessage({ type: "landmarks", eyeCorners });
