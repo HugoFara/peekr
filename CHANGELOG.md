@@ -7,15 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+## [1.2.1] - 2026-05-04
+
+### Changed in 1.2.1
 
 - Upgraded major dev dependencies: `eslint` 9 → 10, `vitest` 3 → 4, `globals` 16 → 17, `vite` 7 → 8.
 - Upgraded `onnxruntime-web` 1.22 → 1.25.
 - Bumped semver-compatible dependencies: `@stylistic/eslint-plugin` 5.2 → 5.10, `vite-plugin-wasm` 3.5 → 3.6.
-- `FaceMesh` is now imported as a namespace from `@mediapipe/face_mesh` to satisfy Vite 8's stricter rolldown-based CommonJS interop.
 - Build now copies MediaPipe FaceMesh runtime assets (~17 MB of WASM, asset-data, and JS glue) from `node_modules/@mediapipe/face_mesh/` at dev/build time via `vite-plugin-static-copy`. The corresponding `public/mediapipe/` directory is no longer tracked in git.
+- README credits UNIGE and NCCR Evolving Language alongside the Stanford / Dakin Lab origin, with a logo row at the top.
 
-### Fixed
+### Fixed in 1.2.1
 
 - ESLint no longer reformats vendored MediaPipe glue under `public/`: scoped `@stylistic/indent` to `src/` and added `public/` and `dist/` to the global ignores.
 - Dev mode `SyntaxError: doesn't provide an export named: 'default'` on `@mediapipe/face_mesh`: the package declares `"sideEffects": []`, which causes Vite/rolldown to tree-shake the bare ES import and to fail CJS interop on the optimized bundle. Load `face_mesh.js` as a classic `<script>` tag in `index.html` instead and read `FaceMesh` from `globalThis`.
