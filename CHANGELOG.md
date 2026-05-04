@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Upgraded major dev dependencies: `eslint` 9 → 10, `vitest` 3 → 4, `globals` 16 → 17.
+- Upgraded major dev dependencies: `eslint` 9 → 10, `vitest` 3 → 4, `globals` 16 → 17, `vite` 7 → 8.
 - Upgraded `onnxruntime-web` 1.22 → 1.25.
-- Bumped semver-compatible dependencies: `vite` 7.0 → 7.3, `@stylistic/eslint-plugin` 5.2 → 5.10, `vite-plugin-wasm` 3.5 → 3.6.
+- Bumped semver-compatible dependencies: `@stylistic/eslint-plugin` 5.2 → 5.10, `vite-plugin-wasm` 3.5 → 3.6.
+- `FaceMesh` is now imported as a namespace from `@mediapipe/face_mesh` to satisfy Vite 8's stricter rolldown-based CommonJS interop.
 
 ### Fixed
 
