@@ -1,7 +1,8 @@
 /*
  * Handles video input, face mesh, and communication with the worker
  */
-import { FaceMesh } from "@mediapipe/face_mesh";
+import * as faceMeshModule from "@mediapipe/face_mesh";
+const { FaceMesh } = faceMeshModule;
 import ndarray from "ndarray";
 import ops from "ndarray-ops";
 
