@@ -1,9 +1,21 @@
 # Peekr: Browser-based Eye Tracking
 
-![Peekr Welcome Screen](./image/Peekr%20Banner.png)
-
-**Peekr** is a lightweight, browser-compatible webcam eye tracking module.
+**Peekr** is a lightweight, browser-compatible webcam eye tracking module — built at **Stanford** and extended at the **University of Geneva** within **NCCR Evolving Language**.
 It runs entirely in the browser — no installation, no data sent to a server.
+
+<p>
+  <a href="https://edneuro.stanford.edu">
+    <img src="image/stanford-logo.png" alt="Stanford University" height="70">
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://www.unige.ch">
+    <img src="image/unige-logo.png" alt="University of Geneva" height="70">
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://evolvinglanguage.ch">
+    <img src="image/nccr-evolving-language-logo.png" alt="NCCR Evolving Language" height="70">
+  </a>
+</p>
 
 > [!TIP]
 > You can test it on [GitHub Pages](https://hugofara.github.io/peekr/).
@@ -129,7 +141,7 @@ Tests cover `calculateCoefficients` and `moveCalibratedDot` with edge cases (zer
 
 Built by **Aryaman Taore** at [Dakin Lab](https://www.dakinlab.org) and [Stanford Brain Development & Education Lab](https://edneuro.stanford.edu).
 
-The web part received major changes from [Hugo Fara](https://hugofara.net).
+The web part received major changes from [Hugo Fara](https://hugofara.net) at the [University of Geneva](https://www.unige.ch) (UNIGE), as part of [NCCR Evolving Language](https://evolvinglanguage.ch).
 It includes a new calibration setup, validation, gaze recording, and Kalman filtering of the output.
 
 ## Background
@@ -138,6 +150,8 @@ Peekr was developed by **Aryaman Taore**, a visual neuroscientist and machine le
 The project emerged during Aryaman's PhD at the University of Auckland and continued through his postdoctoral research at **Stanford University**.
 Peekr's underlying ML model was trained on **268,000+ image frames** from **264 participants** recruited via [Prolific](https://www.prolific.com/).
 Each participant used their own personal setup.
+
+The current fork is maintained at the **University of Geneva (UNIGE)** within [NCCR Evolving Language](https://evolvinglanguage.ch), a National Centre of Competence in Research funded by the [Swiss National Science Foundation](https://www.snf.ch).
 
 ## Performances
 
