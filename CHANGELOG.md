@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded major dev dependencies: `eslint` 9 → 10, `vitest` 3 → 4, `globals` 16 → 17.
+- Upgraded `onnxruntime-web` 1.22 → 1.25.
+- Bumped semver-compatible dependencies: `vite` 7.0 → 7.3, `@stylistic/eslint-plugin` 5.2 → 5.10, `vite-plugin-wasm` 3.5 → 3.6.
+
+### Fixed
+
+- ESLint no longer reformats vendored MediaPipe glue under `public/`: scoped `@stylistic/indent` to `src/` and added `public/` and `dist/` to the global ignores.
+
 ## [1.2.0] - 2026-03-11
 
 ### Added in 1.2.0
