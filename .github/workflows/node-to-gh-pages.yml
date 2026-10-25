@@ -38,6 +38,9 @@ jobs:
   deploy:
     # Add a dependency to the build job
     needs: build
+    # The github-pages environment only accepts main; on a pull request the
+    # job would be refused before its first step.
+    if: github.event_name == 'push'
 
     # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
     permissions:
